@@ -1,3 +1,9 @@
+## 1.1.0
+
+- feat: Added integrated Home Assistant ingress UI for managing configuration files.
+- feat: Exposed configuration editor over port 8099 and enabled panel navigation entry.
+- docs: Documented the new web interface and how to access it.
+
 **Please note:**
 Soon the update will contain the preparations and for the object rename form `devices` to `enities`.
 

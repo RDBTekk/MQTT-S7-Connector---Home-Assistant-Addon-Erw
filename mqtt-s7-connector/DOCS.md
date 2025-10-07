@@ -10,6 +10,7 @@ This documentation file is edited so it will contain everything you need to know
 - [Addon options](#addon-options)
   - [Single PLC](#single-plc)
   - [Multiple PLC's](#multiple-plcs)
+- [Weboberfläche](#weboberflache)
 - [Configuration](#configuration)
   - [Log level](#log-level)
   - [Config File](#config-file)
@@ -85,6 +86,19 @@ config_files:
   - config_plc1.yaml
   - config_plc2.yaml
 ```
+
+## Weboberfläche
+
+Ab Version 1.1.0 des Add-ons steht eine integrierte Weboberfläche zur Verfügung, die über Ingress direkt in Home Assistant geöffnet wird.
+
+- Öffne in Home Assistant den Reiter **Einstellungen → Add-ons → MQTT Siemens S7 Connector**.
+- Klicke auf **Öffnen** oder auf den neuen Eintrag in der linken Navigationsleiste. Die Oberfläche lädt automatisch im Home Assistant Frontend.
+- Wähle im Drop-down die gewünschte Konfigurationsdatei und bearbeite den Inhalt direkt im Editor.
+- Mit **Speichern** werden die Änderungen sofort in der Datei unter `/config` gespeichert. Ein Neustart des Add-ons lädt die neue Konfiguration.
+
+Die Oberfläche zeigt auch den aktuell gesetzten Log-Level sowie die Anzahl der eingebundenen Konfigurationsdateien an. Für umfangreiche Änderungen empfiehlt es sich weiterhin, regelmäßig Backups der Dateien zu erstellen.
+
+> Tipp: Zusätzlich steht der Editor auch außerhalb von Ingress über `http://<deine-home-assistant-adresse>:8099/` zur Verfügung, sofern der Port im Add-on freigegeben wurde.
 
 ## Configuration
 

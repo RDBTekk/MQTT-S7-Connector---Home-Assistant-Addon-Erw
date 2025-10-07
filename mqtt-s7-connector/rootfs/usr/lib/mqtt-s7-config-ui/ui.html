@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MQTT S7 Connector Configuration</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: #111827;
+        color: #f9fafb;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.25rem;
+      }
+
+      p.description {
+        margin-top: 0;
+        color: #d1d5db;
+      }
+
+      section {
+        background: rgba(31, 41, 55, 0.75);
+        border: 1px solid rgba(75, 85, 99, 0.6);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+      }
+
+      label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      select,
+      textarea,
+      button {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(107, 114, 128, 0.6);
+        background-color: rgba(17, 24, 39, 0.6);
+        color: inherit;
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+
+      textarea {
+        min-height: 380px;
+        resize: vertical;
+        line-height: 1.4;
+        font-family: "Fira Code", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+
+      button {
+        margin-top: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+      }
+
+      button:hover {
+        background-color: rgba(79, 70, 229, 0.9);
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none;
+      }
+
+      .status {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .status.ok {
+        color: #34d399;
+      }
+
+      .status.error {
+        color: #f87171;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+        color: #9ca3af;
+        font-size: 0.95rem;
+      }
+
+      .meta span {
+        background: rgba(55, 65, 81, 0.6);
+        padding: 0.5rem 0.75rem;
+        border-radius: 999px;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 1.5rem 1rem 3rem;
+        }
+
+        section {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MQTT S7 Connector</h1>
+      <p class="description">
+        Bearbeite die Konfigurationsdateien des Add-ons direkt in Home Assistant und speichere die Änderungen sofort.
+      </p>
+      <section>
+        <div class="meta">
+          <span id="log-level">Log-Level: &mdash;</span>
+          <span id="file-count">Dateien: &mdash;</span>
+        </div>
+        <label for="config-file">Konfigurationsdatei</label>
+        <select id="config-file"></select>
+        <label for="config-content">Inhalt</label>
+        <textarea id="config-content" spellcheck="false"></textarea>
+        <button id="save-button">Speichern</button>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </section>
+    </main>
+    <script>
+      const configSelect = document.getElementById('config-file');
+      const contentArea = document.getElementById('config-content');
+      const saveButton = document.getElementById('save-button');
+      const statusElement = document.getElementById('status');
+      const logLevelElement = document.getElementById('log-level');
+      const fileCountElement = document.getElementById('file-count');
+
+      async function fetchOptions() {
+        const response = await fetch('/api/options');
+        if (!response.ok) {
+          throw new Error('Optionen konnten nicht geladen werden.');
+        }
+        return response.json();
+      }
+
+      async function fetchConfig(file) {
+        const params = new URLSearchParams({ file });
+        const response = await fetch(`/api/config?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error('Konfiguration konnte nicht geladen werden.');
+        }
+        return response.json();
+      }
+
+      async function saveConfig(file, content) {
+        const response = await fetch('/api/config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file, content })
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.message || 'Konfiguration konnte nicht gespeichert werden.');
+        }
+        return response.json();
+      }
+
+      function setStatus(message, type = '') {
+        statusElement.textContent = message;
+        statusElement.className = `status ${type}`.trim();
+      }
+
+      async function init() {
+        setStatus('Lade Optionen...', '');
+        saveButton.disabled = true;
+        contentArea.value = '';
+        configSelect.innerHTML = '';
+
+        try {
+          const options = await fetchOptions();
+          logLevelElement.textContent = `Log-Level: ${options.log_level}`;
+          fileCountElement.textContent = `Dateien: ${options.config_files.length}`;
+
+          options.config_files.forEach((file) => {
+            const option = document.createElement('option');
+            option.value = file;
+            option.textContent = file;
+            configSelect.appendChild(option);
+          });
+
+          if (options.config_files.length === 0) {
+            throw new Error('Keine Konfigurationsdateien gefunden.');
+          }
+
+          await loadFile(options.config_files[0]);
+          setStatus('Konfiguration erfolgreich geladen.', 'ok');
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, 'error');
+        } finally {
+          saveButton.disabled = false;
+        }
+      }
+
+      async function loadFile(file) {
+        setStatus(`Lade ${file}...`);
+        saveButton.disabled = true;
+        try {
+          const data = await fetchConfig(file);
+          contentArea.value = data.content;
+          configSelect.value = data.file;
+          setStatus(`${file} geladen.`, 'ok');
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, 'error');
+        } finally {
+          saveButton.disabled = false;
+        }
+      }
+
+      configSelect.addEventListener('change', (event) => {
+        const file = event.target.value;
+        loadFile(file);
+      });
+
+      saveButton.addEventListener('click', async () => {
+        const file = configSelect.value;
+        const content = contentArea.value;
+        saveButton.disabled = true;
+        setStatus('Speichere...');
+        try {
+          await saveConfig(file, content);
+          setStatus('Änderungen gespeichert.', 'ok');
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, 'error');
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>
