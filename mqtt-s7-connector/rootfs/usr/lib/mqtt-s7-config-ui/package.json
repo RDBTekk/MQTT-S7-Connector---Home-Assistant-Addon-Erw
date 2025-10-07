@@ -1,0 +1,14 @@
+{
+  "name": "mqtt-s7-config-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configuration UI for MQTT S7 Connector add-on",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "nodes7": "^0.3.18",
+    "yaml": "^2.6.0"
+  }
+}
