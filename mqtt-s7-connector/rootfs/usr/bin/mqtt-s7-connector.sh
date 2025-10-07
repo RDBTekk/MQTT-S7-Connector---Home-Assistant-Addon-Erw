@@ -4,10 +4,50 @@
 # Home Assistant Add-on: MQTT S7 Connector
 # Runs the mqtt-s7-connector
 # ==============================================================================
+
+set -euo pipefail
+
 declare command
 declare loglevel
 declare log_level
 declare first
+
+CONFIG_DIR="/config"
+STANDARD_BLUEPRINT="/usr/share/mqtt-s7-connector/standard-config.yaml"
+
+ensure_config_file() {
+  local requested="$1"
+  local target="${CONFIG_DIR}/${requested}"
+
+  if [ -f "${target}" ]; then
+    synchronize_devices_alias "${target}"
+    return 0
+  fi
+
+  if [ -f "${STANDARD_BLUEPRINT}" ]; then
+    bashio::log.warning "Config file '${requested}' missing, installing standard blueprint copy."
+    cp "${STANDARD_BLUEPRINT}" "${target}"
+    synchronize_devices_alias "${target}"
+    return 0
+  fi
+
+  bashio::log.error "Config file '${requested}' missing and no blueprint available at ${STANDARD_BLUEPRINT}."
+  return 1
+}
+
+synchronize_devices_alias() {
+  local file_path="$1"
+
+  if [ ! -f "${file_path}" ]; then
+    return
+  fi
+
+  if ! node /usr/lib/mqtt-s7-config-ui/sync-devices-alias.js "${file_path}" >/dev/null 2>&1; then
+    bashio::log.warning "Unable to synchronize entities/devices alias for ${file_path}."
+  fi
+}
+
+mkdir -p "${CONFIG_DIR}"
 
 log_level=$(bashio::string.lower "$(bashio::config log_level invalid)")
 
@@ -51,6 +91,9 @@ if bashio::config.has_value config_files; then
   version=$(bashio::addon.version)
   first=true
   for config_file in $(bashio::config config_files); do
+    if ! ensure_config_file "${config_file}"; then
+      exit 1
+    fi
     if [ "$first" = true ]; then
       command="npm --prefix /usr/src/mqtt-s7-connector start -- --addonversion \"${version}\" --config \"/config/${config_file}\" --loglevel=${loglevel}"
     else

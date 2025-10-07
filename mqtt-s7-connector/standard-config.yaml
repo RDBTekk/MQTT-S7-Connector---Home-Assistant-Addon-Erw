@@ -1,0 +1,54 @@
+plc:
+  host: 192.168.0.1
+  port: 102
+  rack: 0
+  slot: 2
+  timeout: 5000
+  localTSAP: "0x4C00"
+  remoteTSAP: "0x1100"
+mqtt:
+  host: mqtt://homeassistant.local
+  user: homeassistant
+  password: homeassistant
+  clientId: mqtt-s7-connector
+  keepalive: 60
+  rejectUnauthorized: true
+entities:
+  - name: Wohnzimmer Licht
+    friendly_name: Wohnzimmer Licht
+    type: light
+    state: DB56,X150.0
+    brightness:
+      plc: DB56,BYTE151
+      set_plc: DB56,BYTE151
+  - name: Wohnzimmer Temperatur
+    friendly_name: Wohnzimmer Temperatur
+    type: sensor
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    state: DB60,REAL0
+  - name: Wohnzimmer Steckdose
+    friendly_name: Wohnzimmer Steckdose
+    type: switch
+    state:
+      plc: DB10,X0.0
+      set_plc: DB10,X0.0
+devices:
+  - name: Wohnzimmer Licht
+    type: light
+    state: DB56,X150.0
+    brightness:
+      plc: DB56,BYTE151
+      set_plc: DB56,BYTE151
+  - name: Wohnzimmer Temperatur
+    type: sensor
+    device_class: temperature
+    unit_of_measurement: "°C"
+    state_class: measurement
+    state: DB60,REAL0
+  - name: Wohnzimmer Steckdose
+    type: switch
+    state:
+      plc: DB10,X0.0
+      set_plc: DB10,X0.0
