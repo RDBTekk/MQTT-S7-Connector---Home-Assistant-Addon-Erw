@@ -1,0 +1,2965 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MQTT S7 Connector Konfiguration</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background-color: #111827;
+        color: #f9fafb;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+
+      h1 {
+        font-size: 1.9rem;
+        margin-bottom: 0.25rem;
+      }
+
+      h2 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+
+      h3 {
+        margin: 1rem 0 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      p.description {
+        margin-top: 0;
+        color: #d1d5db;
+      }
+
+      section {
+        background: rgba(31, 41, 55, 0.75);
+        border: 1px solid rgba(75, 85, 99, 0.6);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        margin-bottom: 1.5rem;
+      }
+
+      label {
+        font-weight: 600;
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid rgba(107, 114, 128, 0.6);
+        background-color: rgba(17, 24, 39, 0.65);
+        color: inherit;
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+
+      input,
+      select,
+      textarea {
+        box-sizing: border-box;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+        font-family:
+          "Fira Code", "SFMono-Regular", Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      button {
+        margin-top: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background-color 0.15s ease-in-out,
+          transform 0.15s ease-in-out;
+      }
+
+      button.primary {
+        background-color: rgba(79, 70, 229, 0.8);
+        border-color: rgba(99, 102, 241, 0.75);
+      }
+
+      button.primary:hover {
+        background-color: rgba(79, 70, 229, 1);
+      }
+
+      button.secondary {
+        width: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.35);
+        color: #bfdbfe;
+        padding: 0.55rem 0.9rem;
+        font-size: 0.95rem;
+        margin-top: 0;
+      }
+
+      button.secondary:hover {
+        background-color: rgba(59, 130, 246, 0.25);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+        transform: none;
+      }
+
+      .status {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .status.ok {
+        color: #34d399;
+      }
+
+      .status.error {
+        color: #f87171;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        color: #9ca3af;
+        font-size: 0.95rem;
+      }
+
+      .meta span {
+        background: rgba(55, 65, 81, 0.6);
+        padding: 0.5rem 0.75rem;
+        border-radius: 999px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .field small {
+        color: #9ca3af;
+        margin-top: 0.35rem;
+      }
+
+      .section-heading {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .section-heading p {
+        margin: 0.15rem 0 0;
+        color: #9ca3af;
+      }
+
+      .kv-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .kv-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        align-items: start;
+      }
+
+      .kv-row .actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .kv-row button.remove {
+        width: auto;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.9rem;
+        background: rgba(248, 113, 113, 0.15);
+        border-color: rgba(248, 113, 113, 0.35);
+        color: #fecaca;
+      }
+
+      .kv-row button.remove:hover {
+        background: rgba(248, 113, 113, 0.25);
+      }
+
+      .kv-nested {
+        grid-column: 1 / -1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px dashed rgba(107, 114, 128, 0.6);
+        background: rgba(17, 24, 39, 0.55);
+      }
+
+      .empty-hint {
+        margin: 0.5rem 0;
+        color: #9ca3af;
+        font-size: 0.95rem;
+      }
+
+      .device-card {
+        border: 1px solid rgba(75, 85, 99, 0.6);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        background: rgba(17, 24, 39, 0.55);
+        margin-bottom: 1.25rem;
+      }
+
+      .device-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .device-header h3 {
+        margin: 0;
+      }
+
+      .device-header button {
+        margin: 0;
+      }
+
+      .attribute-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .attribute-row {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid rgba(75, 85, 99, 0.6);
+        background: rgba(17, 24, 39, 0.55);
+      }
+
+      .attribute-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        align-items: start;
+      }
+
+      .attribute-value {
+        display: block;
+      }
+
+      .plc-address-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .plc-address-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .plc-address-row select {
+        flex: 1 1 220px;
+        min-width: 0;
+      }
+
+      .plc-address-row input[type="text"] {
+        flex: 2 1 280px;
+        min-width: 0;
+      }
+
+      .db-address-builder {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        border: 1px dashed rgba(79, 70, 229, 0.45);
+        background: rgba(30, 41, 59, 0.55);
+      }
+
+      .db-address-builder.mismatch {
+        border-color: rgba(248, 113, 113, 0.55);
+      }
+
+      .db-address-builder .field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+      }
+
+      .db-address-builder .field label {
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #c7d2fe;
+      }
+
+      .db-address-builder .field input,
+      .db-address-builder .field select {
+        width: 100%;
+        padding: 0.55rem;
+        font-size: 0.95rem;
+      }
+
+      .db-address-builder .hint {
+        grid-column: 1 / -1;
+        margin: 0;
+        font-size: 0.8rem;
+        color: #9ca3af;
+      }
+
+      .attribute-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .attribute-actions button {
+        margin: 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      thead {
+        background: rgba(55, 65, 81, 0.6);
+      }
+
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .status-pill.ok {
+        background: rgba(34, 197, 94, 0.15);
+        color: #34d399;
+      }
+
+      .status-pill.warning {
+        background: rgba(234, 179, 8, 0.15);
+        color: #fbbf24;
+      }
+
+      .status-pill.error {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+      }
+
+      .status-pill.skipped {
+        background: rgba(156, 163, 175, 0.15);
+        color: #d1d5db;
+      }
+
+      .plc-card {
+        border: 1px solid rgba(75, 85, 99, 0.6);
+        border-radius: 12px;
+        background: rgba(17, 24, 39, 0.55);
+        padding: 1.25rem;
+        margin-top: 1rem;
+      }
+
+      .plc-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .plc-card-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .plc-card-subtitle {
+        margin: 0.35rem 0 0;
+        color: #9ca3af;
+        font-size: 0.95rem;
+      }
+
+      .plc-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.75rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        background: rgba(156, 163, 175, 0.15);
+        color: #d1d5db;
+      }
+
+      .plc-indicator.online {
+        background: rgba(34, 197, 94, 0.15);
+        color: #34d399;
+      }
+
+      .plc-indicator.offline {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+      }
+
+      .plc-indicator.test,
+      .plc-indicator.test-idle {
+        background: rgba(129, 140, 248, 0.2);
+        color: #c7d2fe;
+      }
+
+      .plc-indicator.test-idle {
+        opacity: 0.8;
+      }
+
+      .plc-details {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .plc-detail {
+        padding: 0.75rem;
+        border-radius: 10px;
+        background: rgba(31, 41, 55, 0.55);
+        border: 1px solid rgba(55, 65, 81, 0.6);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .plc-detail .label {
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #9ca3af;
+      }
+
+      .plc-detail .value {
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      .plc-status-text {
+        margin: 0.5rem 0 0;
+        color: #d1d5db;
+      }
+
+      .plc-summary {
+        margin-top: 0.5rem;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+
+      .plc-summary span {
+        margin-right: 0.75rem;
+      }
+
+      .plc-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .plc-actions button {
+        width: auto;
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 1.5rem 1rem 3rem;
+        }
+
+        section {
+          padding: 1.25rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MQTT S7 Connector</h1>
+      <p class="description">
+        Konfiguriere alle Einstellungen des Add-ons direkt im Browser.
+        Änderungen werden als YAML gespeichert und stehen dem Add-on sofort zur
+        Verfügung.
+      </p>
+      <section>
+        <div class="meta">
+          <span id="log-level">Log-Level: &mdash;</span>
+          <span id="file-count">Dateien: &mdash;</span>
+        </div>
+        <div class="field">
+          <label for="config-file">Konfigurationsdatei</label>
+          <select id="config-file"></select>
+        </div>
+        <div
+          class="section-heading"
+          style="margin-top: 1.25rem; align-items: flex-end"
+        >
+          <div>
+            <h2 style="margin: 0; font-size: 1.2rem">Speichern</h2>
+            <p style="margin: 0">
+              Die Änderungen werden in die ausgewählte Datei geschrieben.
+            </p>
+          </div>
+          <button id="save-button" class="primary" type="button">
+            Speichern
+          </button>
+        </div>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <div>
+            <h2>PLC-Verbindung</h2>
+            <p>Basisdaten für die Kommunikation mit der SPS.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="plc-host">Host</label>
+            <input id="plc-host" type="text" placeholder="192.168.0.1" />
+          </div>
+          <div class="field">
+            <label for="plc-port">Port</label>
+            <input id="plc-port" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="plc-rack">Rack</label>
+            <input id="plc-rack" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="plc-slot">Slot</label>
+            <input id="plc-slot" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="plc-timeout">Timeout (ms)</label>
+            <input id="plc-timeout" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="plc-local-tsap">Lokale TSAP</label>
+            <input id="plc-local-tsap" type="text" />
+          </div>
+          <div class="field">
+            <label for="plc-remote-tsap">Remote TSAP</label>
+            <input id="plc-remote-tsap" type="text" />
+          </div>
+          <div class="field">
+            <label for="plc-debug">Debug</label>
+            <select id="plc-debug">
+              <option value="">Nicht gesetzt</option>
+              <option value="true">Aktiviert</option>
+              <option value="false">Deaktiviert</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="plc-optimize">Nicht optimieren</label>
+            <select id="plc-optimize">
+              <option value="">Nicht gesetzt</option>
+              <option value="true">Aktiviert</option>
+              <option value="false">Deaktiviert</option>
+            </select>
+          </div>
+        </div>
+        <h3>Weitere PLC-Optionen</h3>
+        <p class="empty-hint" id="plc-extra-hint">
+          Keine zusätzlichen Optionen vorhanden.
+        </p>
+        <div id="plc-extra-list" class="kv-list"></div>
+        <button id="plc-add-extra" class="secondary" type="button">
+          Option hinzufügen
+        </button>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <div>
+            <h2>MQTT-Einstellungen</h2>
+            <p>Verbindung zum MQTT-Broker festlegen.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="mqtt-host">Host/URL</label>
+            <input
+              id="mqtt-host"
+              type="text"
+              placeholder="mqtt://homeassistant"
+            />
+          </div>
+          <div class="field">
+            <label for="mqtt-user">Benutzername</label>
+            <input id="mqtt-user" type="text" />
+          </div>
+          <div class="field">
+            <label for="mqtt-password">Passwort</label>
+            <input id="mqtt-password" type="password" />
+          </div>
+          <div class="field">
+            <label for="mqtt-client-id">Client ID</label>
+            <input id="mqtt-client-id" type="text" />
+          </div>
+          <div class="field">
+            <label for="mqtt-keepalive">Keepalive (s)</label>
+            <input id="mqtt-keepalive" type="number" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label for="mqtt-reject">TLS-Zertifikate prüfen</label>
+            <select id="mqtt-reject">
+              <option value="">Nicht gesetzt</option>
+              <option value="true">Ja</option>
+              <option value="false">Nein</option>
+            </select>
+            <small
+              >Bei selbst signierten Zertifikaten auf "Nein" stellen.</small
+            >
+          </div>
+        </div>
+        <h3>Weitere MQTT-Optionen</h3>
+        <p class="empty-hint" id="mqtt-extra-hint">
+          Keine zusätzlichen Optionen vorhanden.
+        </p>
+        <div id="mqtt-extra-list" class="kv-list"></div>
+        <button id="mqtt-add-extra" class="secondary" type="button">
+          Option hinzufügen
+        </button>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <div>
+            <h2>Weitere Einstellungen</h2>
+            <p>Felder, die nicht zu PLC, MQTT oder Entitäten gehören.</p>
+          </div>
+        </div>
+        <p class="empty-hint" id="root-extra-hint">
+          Keine weiteren Einträge vorhanden.
+        </p>
+        <div id="root-extra-list" class="kv-list"></div>
+        <button id="root-add-extra" class="secondary" type="button">
+          Eintrag hinzufügen
+        </button>
+      </section>
+
+      <section>
+        <div class="section-heading">
+          <div>
+            <h2>Entitäten</h2>
+            <p>
+              Sensoren, Aktoren und weitere Home Assistant Entitäten verwalten.
+            </p>
+          </div>
+          <button id="add-entity" class="secondary" type="button">
+            Entität hinzufügen
+          </button>
+        </div>
+        <div id="entities-list"></div>
+        <p class="empty-hint" id="entities-empty">
+          Noch keine Entitäten vorhanden.
+        </p>
+      </section>
+
+      <section>
+        <div class="plc-header">
+          <div>
+            <h2 style="margin: 0 0 0.25rem">SPS Ein-/Ausgänge</h2>
+            <p id="plc-status" class="plc-status-text">
+              Noch keine Abfrage durchgeführt.
+            </p>
+            <div id="plc-summary" class="plc-summary"></div>
+          </div>
+          <div class="plc-actions">
+            <button id="plc-test-toggle" type="button" class="secondary">
+              Testmodus aktivieren
+            </button>
+            <button id="plc-refresh" type="button" class="secondary">
+              SPS erneut einlesen
+            </button>
+          </div>
+        </div>
+        <div class="plc-card" id="plc-card">
+          <div class="plc-card-header">
+            <div>
+              <h3 id="plc-card-title">Keine SPS verbunden</h3>
+              <p id="plc-card-subtitle" class="plc-card-subtitle">
+                Aktiviere den Testmodus oder verbinde eine SPS, um Details
+                anzuzeigen.
+              </p>
+            </div>
+            <span id="plc-card-indicator" class="plc-indicator offline"
+              >Offline</span
+            >
+          </div>
+          <div id="plc-card-details" class="plc-details"></div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Entität</th>
+                <th>Attribut</th>
+                <th>Rolle</th>
+                <th>Adresse</th>
+                <th>Status</th>
+                <th>Wert</th>
+              </tr>
+            </thead>
+            <tbody id="plc-table"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <datalist id="entity-types">
+      <option value="air_quality"></option>
+      <option value="alarm_control_panel"></option>
+      <option value="binary_sensor"></option>
+      <option value="button"></option>
+      <option value="camera"></option>
+      <option value="climate"></option>
+      <option value="cover"></option>
+      <option value="device_tracker"></option>
+      <option value="event"></option>
+      <option value="fan"></option>
+      <option value="geo_location"></option>
+      <option value="humidifier"></option>
+      <option value="image"></option>
+      <option value="input_boolean"></option>
+      <option value="input_button"></option>
+      <option value="input_datetime"></option>
+      <option value="input_number"></option>
+      <option value="input_select"></option>
+      <option value="input_text"></option>
+      <option value="light"></option>
+      <option value="lock"></option>
+      <option value="media_player"></option>
+      <option value="number"></option>
+      <option value="person"></option>
+      <option value="pump"></option>
+      <option value="remote"></option>
+      <option value="scene"></option>
+      <option value="script"></option>
+      <option value="select"></option>
+      <option value="sensor"></option>
+      <option value="siren"></option>
+      <option value="switch"></option>
+      <option value="text"></option>
+      <option value="timer"></option>
+      <option value="update"></option>
+      <option value="vacuum"></option>
+      <option value="valve"></option>
+      <option value="water_heater"></option>
+      <option value="weather"></option>
+    </datalist>
+
+    <datalist id="plc-address-options"></datalist>
+    <datalist id="plc-db-numbers"></datalist>
+
+    <script>
+      const configSelect = document.getElementById("config-file");
+      const saveButton = document.getElementById("save-button");
+      const statusElement = document.getElementById("status");
+      const logLevelElement = document.getElementById("log-level");
+      const fileCountElement = document.getElementById("file-count");
+
+      const plcInputs = {
+        host: document.getElementById("plc-host"),
+        port: document.getElementById("plc-port"),
+        rack: document.getElementById("plc-rack"),
+        slot: document.getElementById("plc-slot"),
+        timeout: document.getElementById("plc-timeout"),
+        localTSAP: document.getElementById("plc-local-tsap"),
+        remoteTSAP: document.getElementById("plc-remote-tsap"),
+      };
+      const plcDebugSelect = document.getElementById("plc-debug");
+      const plcOptimizeSelect = document.getElementById("plc-optimize");
+      const plcExtrasContainer = document.getElementById("plc-extra-list");
+      const plcExtrasHint = document.getElementById("plc-extra-hint");
+      const plcAddExtraButton = document.getElementById("plc-add-extra");
+
+      const mqttInputs = {
+        host: document.getElementById("mqtt-host"),
+        user: document.getElementById("mqtt-user"),
+        password: document.getElementById("mqtt-password"),
+        clientId: document.getElementById("mqtt-client-id"),
+        keepalive: document.getElementById("mqtt-keepalive"),
+      };
+      const mqttRejectSelect = document.getElementById("mqtt-reject");
+      const mqttExtrasContainer = document.getElementById("mqtt-extra-list");
+      const mqttExtrasHint = document.getElementById("mqtt-extra-hint");
+      const mqttAddExtraButton = document.getElementById("mqtt-add-extra");
+
+      const rootExtrasContainer = document.getElementById("root-extra-list");
+      const rootExtrasHint = document.getElementById("root-extra-hint");
+      const rootAddExtraButton = document.getElementById("root-add-extra");
+
+      const entitiesList = document.getElementById("entities-list");
+      const entitiesEmptyHint = document.getElementById("entities-empty");
+      const addEntityButton = document.getElementById("add-entity");
+
+      const plcStatusElement = document.getElementById("plc-status");
+      const plcSummaryElement = document.getElementById("plc-summary");
+      const plcTableBody = document.getElementById("plc-table");
+      const plcCardElement = document.getElementById("plc-card");
+      const plcIndicatorElement = document.getElementById("plc-card-indicator");
+      const plcCardTitle = document.getElementById("plc-card-title");
+      const plcCardSubtitle = document.getElementById("plc-card-subtitle");
+      const plcDetailsElement = document.getElementById("plc-card-details");
+      const plcTestToggleButton = document.getElementById("plc-test-toggle");
+      const plcRefreshButton = document.getElementById("plc-refresh");
+      const plcAddressDatalist = document.getElementById("plc-address-options");
+      const plcDbNumberDatalist = document.getElementById("plc-db-numbers");
+
+      const PLC_KNOWN_KEYS = new Set([
+        "host",
+        "port",
+        "rack",
+        "slot",
+        "timeout",
+        "localTSAP",
+        "remoteTSAP",
+        "debug",
+        "doNotOptimize",
+      ]);
+      const MQTT_KNOWN_KEYS = new Set([
+        "host",
+        "user",
+        "password",
+        "clientId",
+        "keepalive",
+        "rejectUnauthorized",
+      ]);
+      const ENTITY_META_KEYS = new Set([
+        "name",
+        "type",
+        "friendly_name",
+        "topic",
+        "device_class",
+        "unit_of_measurement",
+        "state_class",
+      ]);
+
+      function createStateTemplate(additionalAttributes = [], meta = null) {
+        const template = {
+          attributes: [{ key: "state", value: "" }, ...additionalAttributes],
+        };
+        if (meta && typeof meta === "object") {
+          template.meta = meta;
+        }
+        return template;
+      }
+
+      function createToggleTemplate(additionalAttributes = [], meta = null) {
+        const template = {
+          attributes: [
+            { key: "state", value: { plc: "", set_plc: "" } },
+            ...additionalAttributes,
+          ],
+        };
+        if (meta && typeof meta === "object") {
+          template.meta = meta;
+        }
+        return template;
+      }
+
+      const ENTITY_TEMPLATES = {
+        air_quality: createStateTemplate(),
+        alarm_control_panel: createToggleTemplate(),
+        binary_sensor: createStateTemplate([], { device_class: "motion" }),
+        button: {
+          attributes: [{ key: "command", value: { set_plc: "" } }],
+        },
+        camera: createStateTemplate(),
+        climate: {
+          attributes: [
+            { key: "temperature", value: "" },
+            { key: "target_temperature", value: { plc: "", set_plc: "" } },
+            { key: "hvac_mode", value: "" },
+          ],
+        },
+        cover: createToggleTemplate([
+          { key: "position", value: { plc: "", set_plc: "" } },
+        ]),
+        device_tracker: createStateTemplate([
+          { key: "latitude", value: "" },
+          { key: "longitude", value: "" },
+        ]),
+        event: createStateTemplate([
+          { key: "type", value: "" },
+          { key: "data", value: {} },
+        ]),
+        fan: createToggleTemplate([{ key: "speed", value: "" }]),
+        geo_location: createStateTemplate([
+          { key: "latitude", value: "" },
+          { key: "longitude", value: "" },
+          { key: "altitude", value: "" },
+        ]),
+        humidifier: createToggleTemplate([{ key: "humidity", value: "" }]),
+        image: createStateTemplate(),
+        input_boolean: createToggleTemplate(),
+        input_button: {
+          attributes: [{ key: "press", value: { set_plc: "" } }],
+        },
+        input_datetime: createStateTemplate(),
+        input_number: createStateTemplate([
+          { key: "min", value: "" },
+          { key: "max", value: "" },
+        ]),
+        input_select: createStateTemplate([{ key: "options", value: [] }]),
+        input_text: createStateTemplate(),
+        light: createToggleTemplate([
+          { key: "brightness", value: { plc: "", set_plc: "" } },
+        ]),
+        lock: createToggleTemplate(),
+        media_player: createToggleTemplate([
+          { key: "volume_level", value: { plc: "", set_plc: "" } },
+          { key: "source", value: "" },
+        ]),
+        number: createToggleTemplate(),
+        person: createStateTemplate(),
+        pump: createToggleTemplate([
+          { key: "speed", value: { plc: "", set_plc: "" } },
+        ]),
+        remote: createToggleTemplate([
+          { key: "command", value: { set_plc: "" } },
+        ]),
+        scene: {
+          attributes: [{ key: "activate", value: { set_plc: "" } }],
+        },
+        script: {
+          attributes: [{ key: "run", value: { set_plc: "" } }],
+        },
+        select: createStateTemplate(),
+        sensor: createStateTemplate([], {
+          device_class: "temperature",
+          unit_of_measurement: "°C",
+          state_class: "measurement",
+        }),
+        siren: createToggleTemplate([{ key: "tone", value: "" }]),
+        switch: createToggleTemplate(),
+        text: createStateTemplate(),
+        timer: createStateTemplate([{ key: "duration", value: "" }]),
+        update: {
+          attributes: [
+            { key: "installed_version", value: "" },
+            { key: "latest_version", value: "" },
+          ],
+        },
+        vacuum: createToggleTemplate([{ key: "mode", value: "" }]),
+        valve: createToggleTemplate([
+          { key: "position", value: { plc: "", set_plc: "" } },
+        ]),
+        water_heater: createToggleTemplate([
+          { key: "target_temperature", value: { plc: "", set_plc: "" } },
+          { key: "current_temperature", value: "" },
+        ]),
+        weather: createStateTemplate([
+          { key: "temperature", value: "" },
+          { key: "humidity", value: "" },
+        ]),
+      };
+
+      const state = {
+        options: null,
+        currentFile: "",
+        config: {
+          plc: {},
+          mqtt: {},
+          entities: [],
+          extras: {},
+        },
+        plcConnection: null,
+        testMode: {
+          enabled: false,
+          lastActivated: null,
+          metadata: null,
+        },
+        addressOptions: [],
+        addressPools: {
+          config: new Set(),
+          detected: new Set(),
+        },
+      };
+
+      const ADDRESS_NEGATIVE_KEYS = new Set([
+        "name",
+        "friendly_name",
+        "type",
+        "topic",
+        "state_topic",
+        "command_topic",
+        "availability_topic",
+        "unique_id",
+        "icon",
+        "device_class",
+        "state_class",
+        "unit_of_measurement",
+        "entity_category",
+        "icon_color",
+      ]);
+
+      const ADDRESS_POSITIVE_KEYS = new Set([
+        "state",
+        "plc",
+        "set_plc",
+        "position",
+        "command",
+        "speed",
+        "temperature",
+        "target_temperature",
+        "current_temperature",
+        "humidity",
+        "pressure",
+        "flow",
+        "level",
+        "brightness",
+        "value",
+        "setpoint",
+        "activate",
+        "run",
+        "press",
+        "open",
+        "close",
+        "start",
+        "stop",
+      ]);
+
+      const ADDRESS_SUFFIX_HINTS = [
+        "_plc",
+        "_address",
+        "_addr",
+        "_input",
+        "_output",
+        "_source",
+        "_target",
+      ];
+      const ADDRESS_PREFIX_HINTS = [
+        "current_",
+        "target_",
+        "set_",
+        "reset_",
+        "open_",
+        "close_",
+        "start_",
+        "stop_",
+        "activate_",
+        "deactivate_",
+        "enable_",
+        "disable_",
+      ];
+
+      const DB_TYPE_OPTIONS = [
+        { value: "X", label: "Bit (DBX Byte.Bit)", requiresBit: true },
+        { value: "BYTE", label: "BYTE" },
+        { value: "WORD", label: "WORD" },
+        { value: "DWORD", label: "DWORD" },
+        { value: "INT", label: "INT" },
+        { value: "DINT", label: "DINT" },
+        { value: "REAL", label: "REAL" },
+        { value: "CHAR", label: "CHAR" },
+        { value: "STRING", label: "STRING" },
+        { value: "TIME", label: "TIME" },
+        { value: "S5TIME", label: "S5TIME" },
+        { value: "LREAL", label: "LREAL" },
+        { value: "LWORD", label: "LWORD" },
+      ];
+
+      let addressOptionConsumers = [];
+      const addressCollator = new Intl.Collator(undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+
+      function isLikelyPlcAddress(value) {
+        if (typeof value !== "string") {
+          return false;
+        }
+        const trimmed = value.trim();
+        if (!trimmed) {
+          return false;
+        }
+        const patterns = [
+          /^[A-Za-z]{1,4}\d*,[A-Za-z]+[0-9.,]*$/u,
+          /^[A-Za-z]{1,4}\d*(?:\.[0-9]+.*)?$/u,
+        ];
+        return patterns.some((regex) => regex.test(trimmed));
+      }
+
+      function parseDbAddress(value) {
+        if (typeof value !== "string") {
+          return null;
+        }
+        const trimmed = value.trim().toUpperCase();
+        if (!trimmed) {
+          return null;
+        }
+        const match = trimmed.match(
+          /^DB(\d+)(?:[,.:]?)(?:DB)?([A-Z]+)(\d+)(?:\.(\d+))?$/u,
+        );
+        if (!match) {
+          return null;
+        }
+        const [, dbNumberRaw, typeRaw, byteRaw, bitRaw] = match;
+        const dbNumber = Number.parseInt(dbNumberRaw, 10);
+        const byteOffset = Number.parseInt(byteRaw, 10);
+        const bitOffset =
+          typeof bitRaw !== "undefined" ? Number.parseInt(bitRaw, 10) : null;
+        if (Number.isNaN(dbNumber) || Number.isNaN(byteOffset)) {
+          return null;
+        }
+        return {
+          dbNumber,
+          dataType: typeRaw,
+          byteOffset,
+          bitOffset:
+            bitOffset != null && !Number.isNaN(bitOffset) ? bitOffset : null,
+        };
+      }
+
+      function requiresBitType(type) {
+        const normalized = (type || "").toUpperCase();
+        return normalized === "X";
+      }
+
+      function formatDbAddress({ dbNumber, dataType, byteOffset, bitOffset }) {
+        const normalizedType = (dataType || "X").toUpperCase();
+        if (
+          !Number.isFinite(dbNumber) ||
+          Number.isNaN(dbNumber) ||
+          !Number.isFinite(byteOffset) ||
+          Number.isNaN(byteOffset)
+        ) {
+          return "";
+        }
+        const safeDb = Math.max(0, Math.trunc(dbNumber));
+        const safeOffset = Math.max(0, Math.trunc(byteOffset));
+        if (requiresBitType(normalizedType)) {
+          const safeBit =
+            Number.isFinite(bitOffset) && !Number.isNaN(bitOffset)
+              ? Math.min(7, Math.max(0, Math.trunc(bitOffset)))
+              : 0;
+          return `DB${safeDb},X${safeOffset}.${safeBit}`;
+        }
+        return `DB${safeDb},${normalizedType}${safeOffset}`;
+      }
+
+      function computeDbNumbers(addresses) {
+        const numbers = new Set();
+        (addresses || []).forEach((address) => {
+          const parsed = parseDbAddress(address);
+          if (parsed) {
+            numbers.add(parsed.dbNumber);
+          }
+        });
+        return Array.from(numbers).sort((a, b) => a - b);
+      }
+
+      function collectAddressesFromConfig(config) {
+        const addresses = new Set();
+        if (!config || typeof config !== "object") {
+          return [];
+        }
+        const entities = Array.isArray(config.entities) ? config.entities : [];
+        entities.forEach((entity) => {
+          if (!entity || typeof entity !== "object") {
+            return;
+          }
+          Object.entries(entity).forEach(([key, rawValue]) => {
+            if (
+              typeof key === "string" &&
+              ADDRESS_NEGATIVE_KEYS.has(key.toLowerCase())
+            ) {
+              return;
+            }
+            if (typeof rawValue === "string" && isLikelyPlcAddress(rawValue)) {
+              addresses.add(rawValue.trim());
+              return;
+            }
+            if (!rawValue || typeof rawValue !== "object") {
+              return;
+            }
+            Object.values(rawValue).forEach((nested) => {
+              if (typeof nested === "string" && isLikelyPlcAddress(nested)) {
+                addresses.add(nested.trim());
+              }
+            });
+          });
+        });
+        return Array.from(addresses);
+      }
+
+      function registerAddressConsumer(element, updateFn) {
+        if (!element || typeof updateFn !== "function") {
+          return;
+        }
+        addressOptionConsumers.push({ element, updateFn });
+        updateFn(state.addressOptions);
+      }
+
+      function setAddressOptions(addresses) {
+        state.addressOptions = Array.isArray(addresses) ? addresses : [];
+        if (plcAddressDatalist) {
+          plcAddressDatalist.innerHTML = "";
+          state.addressOptions.forEach((address) => {
+            const option = document.createElement("option");
+            option.value = address;
+            plcAddressDatalist.appendChild(option);
+          });
+        }
+        const dbNumbers = computeDbNumbers(state.addressOptions);
+        if (plcDbNumberDatalist) {
+          plcDbNumberDatalist.innerHTML = "";
+          dbNumbers.forEach((db) => {
+            const option = document.createElement("option");
+            option.value = String(db);
+            plcDbNumberDatalist.appendChild(option);
+          });
+        }
+        addressOptionConsumers = addressOptionConsumers.filter((entry) => {
+          if (!entry.element || !entry.element.isConnected) {
+            return false;
+          }
+          try {
+            entry.updateFn(state.addressOptions);
+          } catch (error) {
+            console.error(error);
+          }
+          return true;
+        });
+      }
+
+      function updateAddressOptionsFromPools() {
+        const combined = new Set([
+          ...Array.from(state.addressPools.config || []),
+          ...Array.from(state.addressPools.detected || []),
+        ]);
+        const sorted = Array.from(combined).sort((a, b) =>
+          addressCollator.compare(a, b),
+        );
+        setAddressOptions(sorted);
+      }
+
+      function refreshConfigAddresses() {
+        const addresses = collectAddressesFromConfig(state.config);
+        state.addressPools.config = new Set(addresses);
+        updateAddressOptionsFromPools();
+      }
+
+      function setDetectedAddresses(addressList) {
+        const next = new Set();
+        (addressList || []).forEach((entry) => {
+          if (typeof entry === "string") {
+            const trimmed = entry.trim();
+            if (trimmed) {
+              next.add(trimmed);
+            }
+          }
+        });
+        state.addressPools.detected = next;
+        updateAddressOptionsFromPools();
+      }
+
+      function shouldUseAddressEditor(key, value) {
+        if (typeof key !== "string") {
+          return false;
+        }
+        const normalizedKey = key.toLowerCase();
+        if (ADDRESS_NEGATIVE_KEYS.has(normalizedKey)) {
+          return false;
+        }
+        if (ADDRESS_SUFFIX_HINTS.some((hint) => normalizedKey.endsWith(hint))) {
+          return true;
+        }
+        if (ADDRESS_POSITIVE_KEYS.has(normalizedKey)) {
+          return true;
+        }
+        if (
+          ADDRESS_PREFIX_HINTS.some((prefix) =>
+            normalizedKey.startsWith(prefix),
+          )
+        ) {
+          return true;
+        }
+        if (normalizedKey.includes("address")) {
+          return true;
+        }
+        return typeof value === "string" && isLikelyPlcAddress(value);
+      }
+
+      function createDbBuilder(initialValue, onChange) {
+        const builder = document.createElement("div");
+        builder.className = "db-address-builder";
+
+        const dbField = document.createElement("div");
+        dbField.className = "field";
+        const dbLabel = document.createElement("label");
+        dbLabel.textContent = "DB-Nummer";
+        dbField.appendChild(dbLabel);
+        const dbInput = document.createElement("input");
+        dbInput.type = "number";
+        dbInput.min = "0";
+        dbInput.step = "1";
+        dbInput.placeholder = "z. B. 1";
+        dbInput.setAttribute("list", "plc-db-numbers");
+        dbField.appendChild(dbInput);
+        builder.appendChild(dbField);
+
+        const typeField = document.createElement("div");
+        typeField.className = "field";
+        const typeLabel = document.createElement("label");
+        typeLabel.textContent = "Datentyp";
+        typeField.appendChild(typeLabel);
+        const typeSelect = document.createElement("select");
+        DB_TYPE_OPTIONS.forEach((option) => {
+          const opt = document.createElement("option");
+          opt.value = option.value;
+          opt.textContent = option.label;
+          typeSelect.appendChild(opt);
+        });
+        typeField.appendChild(typeSelect);
+        builder.appendChild(typeField);
+
+        const byteField = document.createElement("div");
+        byteField.className = "field";
+        const byteLabel = document.createElement("label");
+        byteLabel.textContent = "Byte-Offset";
+        byteField.appendChild(byteLabel);
+        const byteInput = document.createElement("input");
+        byteInput.type = "number";
+        byteInput.min = "0";
+        byteInput.step = "1";
+        byteInput.placeholder = "z. B. 0";
+        byteField.appendChild(byteInput);
+        builder.appendChild(byteField);
+
+        const bitField = document.createElement("div");
+        bitField.className = "field";
+        const bitLabel = document.createElement("label");
+        bitLabel.textContent = "Bit";
+        bitField.appendChild(bitLabel);
+        const bitInput = document.createElement("input");
+        bitInput.type = "number";
+        bitInput.min = "0";
+        bitInput.max = "7";
+        bitInput.step = "1";
+        bitInput.placeholder = "0";
+        bitField.appendChild(bitInput);
+        builder.appendChild(bitField);
+
+        const hint = document.createElement("p");
+        hint.className = "hint";
+        hint.textContent =
+          "Nutze den Baukasten für DB-Adressen oder trage freie Adressen oben ein.";
+        builder.appendChild(hint);
+
+        dbInput.value = "";
+        typeSelect.value = DB_TYPE_OPTIONS[0]?.value || "X";
+        byteInput.value = "";
+        bitInput.value = 0;
+
+        let suppress = false;
+
+        function toggleBitVisibility() {
+          if (requiresBitType(typeSelect.value)) {
+            bitField.style.display = "";
+          } else {
+            bitField.style.display = "none";
+          }
+        }
+
+        function emit() {
+          if (suppress) {
+            return;
+          }
+          const dbNumber = Number.parseInt(dbInput.value, 10);
+          const byteOffset = Number.parseInt(byteInput.value, 10);
+          if (Number.isNaN(dbNumber) || Number.isNaN(byteOffset)) {
+            if (typeof onChange === "function") {
+              onChange("");
+            }
+            return;
+          }
+          let bitOffset = null;
+          if (requiresBitType(typeSelect.value)) {
+            bitOffset = Number.parseInt(bitInput.value, 10);
+            if (Number.isNaN(bitOffset)) {
+              bitOffset = 0;
+            }
+          }
+          const formatted = formatDbAddress({
+            dbNumber,
+            dataType: typeSelect.value,
+            byteOffset,
+            bitOffset,
+          });
+          if (typeof onChange === "function") {
+            onChange(formatted);
+          }
+        }
+
+        dbInput.addEventListener("input", emit);
+        typeSelect.addEventListener("change", () => {
+          toggleBitVisibility();
+          emit();
+        });
+        byteInput.addEventListener("input", emit);
+        bitInput.addEventListener("input", emit);
+
+        function update(address) {
+          suppress = true;
+          if (!address) {
+            builder.classList.remove("mismatch");
+            toggleBitVisibility();
+            suppress = false;
+            return;
+          }
+          const parsed = parseDbAddress(address);
+          if (!parsed) {
+            builder.classList.add("mismatch");
+            suppress = false;
+            return;
+          }
+          builder.classList.remove("mismatch");
+          dbInput.value = parsed.dbNumber;
+          if (
+            !Array.from(typeSelect.options).some(
+              (option) => option.value === parsed.dataType,
+            )
+          ) {
+            const opt = document.createElement("option");
+            opt.value = parsed.dataType;
+            opt.textContent = parsed.dataType;
+            typeSelect.appendChild(opt);
+          }
+          typeSelect.value = parsed.dataType;
+          byteInput.value = parsed.byteOffset;
+          if (requiresBitType(parsed.dataType)) {
+            bitInput.value = parsed.bitOffset != null ? parsed.bitOffset : 0;
+          } else {
+            bitInput.value = 0;
+          }
+          toggleBitVisibility();
+          suppress = false;
+        }
+
+        toggleBitVisibility();
+        update(initialValue);
+
+        return {
+          element: builder,
+          update,
+        };
+      }
+
+      function createAddressEditor(
+        initialValue,
+        { onChange, placeholder = "" } = {},
+      ) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "plc-address-editor";
+
+        const row = document.createElement("div");
+        row.className = "plc-address-row";
+        wrapper.appendChild(row);
+
+        const select = document.createElement("select");
+        row.appendChild(select);
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = placeholder || "Adresse (z. B. DB1,X0.0)";
+        input.setAttribute("list", "plc-address-options");
+        input.value = typeof initialValue === "string" ? initialValue : "";
+        row.appendChild(input);
+
+        let suppress = false;
+        let currentValue =
+          typeof initialValue === "string" ? initialValue.trim() : "";
+        let builderApi = null;
+
+        function refreshSelectOptions(addresses) {
+          const known = Array.isArray(addresses) ? addresses : [];
+          select.innerHTML = "";
+          const placeholderOption = document.createElement("option");
+          placeholderOption.value = "";
+          placeholderOption.textContent = known.length
+            ? "Adresse auswählen…"
+            : "Keine Vorschläge";
+          select.appendChild(placeholderOption);
+          known.forEach((address) => {
+            const opt = document.createElement("option");
+            opt.value = address;
+            opt.textContent = address;
+            select.appendChild(opt);
+          });
+          const customOption = document.createElement("option");
+          customOption.value = "__custom__";
+          customOption.textContent = "Eigene Adresse…";
+          select.appendChild(customOption);
+          if (!currentValue) {
+            select.value = "";
+          } else if (known.includes(currentValue)) {
+            select.value = currentValue;
+          } else {
+            select.value = "__custom__";
+          }
+        }
+
+        registerAddressConsumer(wrapper, refreshSelectOptions);
+
+        function updateValue(value, source = "manual") {
+          const normalized = typeof value === "string" ? value.trim() : "";
+          if (suppress) {
+            return;
+          }
+          suppress = true;
+          currentValue = normalized;
+          input.value = normalized;
+          if (source !== "select") {
+            if (!normalized) {
+              select.value = "";
+            } else if ((state.addressOptions || []).includes(normalized)) {
+              select.value = normalized;
+            } else {
+              select.value = "__custom__";
+            }
+          }
+          if (source !== "builder" && builderApi) {
+            builderApi.update(normalized);
+          }
+          if (source !== "external") {
+            if (typeof onChange === "function") {
+              onChange(normalized);
+            }
+            refreshConfigAddresses();
+          }
+          suppress = false;
+        }
+
+        select.addEventListener("change", () => {
+          if (select.value === "__custom__") {
+            input.focus();
+            return;
+          }
+          updateValue(select.value, "select");
+        });
+
+        input.addEventListener("input", () => {
+          updateValue(input.value, "manual");
+        });
+
+        builderApi = createDbBuilder(currentValue, (next) => {
+          updateValue(next, "builder");
+        });
+        wrapper.appendChild(builderApi.element);
+
+        refreshSelectOptions(state.addressOptions);
+        builderApi.update(currentValue);
+        updateValue(currentValue, "external");
+
+        return wrapper;
+      }
+
+      setAddressOptions([]);
+
+      function deepClone(value) {
+        return value == null ? value : JSON.parse(JSON.stringify(value));
+      }
+
+      function ensurePlcSection() {
+        if (!state.config.plc || typeof state.config.plc !== "object") {
+          state.config.plc = {};
+        }
+        return state.config.plc;
+      }
+
+      function ensureMqttSection() {
+        if (!state.config.mqtt || typeof state.config.mqtt !== "object") {
+          state.config.mqtt = {};
+        }
+        return state.config.mqtt;
+      }
+
+      function ensureEntitiesSection() {
+        if (!Array.isArray(state.config.entities)) {
+          state.config.entities = [];
+        }
+        return state.config.entities;
+      }
+
+      function applyEntityTemplate(entity, type, { replaceMeta = false } = {}) {
+        const template = ENTITY_TEMPLATES[type];
+        if (!template) {
+          return;
+        }
+        if (template.meta) {
+          Object.entries(template.meta).forEach(([key, value]) => {
+            if (
+              replaceMeta ||
+              typeof entity[key] === "undefined" ||
+              entity[key] === ""
+            ) {
+              entity[key] = value;
+            }
+          });
+        }
+        if (Array.isArray(template.attributes)) {
+          template.attributes.forEach(({ key, value }) => {
+            if (typeof entity[key] === "undefined") {
+              entity[key] = deepClone(value);
+            }
+          });
+        }
+      }
+
+      function cloneConfig(data) {
+        const source = data && typeof data === "object" ? data : {};
+        const rawEntities = Array.isArray(source.entities)
+          ? source.entities
+          : Array.isArray(source.devices)
+            ? source.devices
+            : [];
+        return {
+          plc:
+            source.plc && typeof source.plc === "object"
+              ? deepClone(source.plc)
+              : {},
+          mqtt:
+            source.mqtt && typeof source.mqtt === "object"
+              ? deepClone(source.mqtt)
+              : {},
+          entities: deepClone(rawEntities),
+          extras:
+            source.extras && typeof source.extras === "object"
+              ? deepClone(source.extras)
+              : {},
+        };
+      }
+
+      function setStatus(message, type = "") {
+        statusElement.textContent = message;
+        statusElement.className = `status ${type}`.trim();
+      }
+
+      function formatTimestamp(value) {
+        if (!value) {
+          return "";
+        }
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return value;
+        }
+        return date.toLocaleString(undefined, {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      function applyTestModeState(data) {
+        if (!data || typeof data !== "object") {
+          return;
+        }
+        state.testMode.enabled = Boolean(data.enabled);
+        state.testMode.lastActivated = data.lastActivated || null;
+        if (data.metadata && typeof data.metadata === "object") {
+          state.testMode.metadata = data.metadata;
+        }
+        const label = state.testMode.enabled
+          ? "Testmodus deaktivieren"
+          : "Testmodus aktivieren";
+        plcTestToggleButton.textContent = label;
+        plcTestToggleButton.setAttribute(
+          "aria-pressed",
+          state.testMode.enabled ? "true" : "false",
+        );
+      }
+
+      function renderPlcCard(
+        connection,
+        { connected = false, message = "" } = {},
+      ) {
+        const mode =
+          connection && connection.mode
+            ? connection.mode
+            : state.testMode.enabled
+              ? "test"
+              : "live";
+        const activeTestMode = mode === "test" && state.testMode.enabled;
+        const indicatorClasses = ["plc-indicator"];
+        let indicatorText = "Offline";
+
+        if (mode === "test") {
+          if (connected) {
+            indicatorClasses.push("test");
+            indicatorText = "Testmodus aktiv";
+          } else if (state.testMode.enabled) {
+            indicatorClasses.push("test-idle");
+            indicatorText = "Testmodus bereit";
+          } else {
+            indicatorClasses.push("offline");
+            indicatorText = "Simulation aus";
+          }
+        } else if (connected) {
+          indicatorClasses.push("online");
+          indicatorText = "Online";
+        } else {
+          indicatorClasses.push("offline");
+          indicatorText = "Offline";
+        }
+
+        plcIndicatorElement.className = indicatorClasses.join(" ");
+        plcIndicatorElement.textContent = indicatorText;
+
+        const detailsSource = connection
+          ? connection
+          : activeTestMode && state.testMode.metadata
+            ? { ...state.testMode.metadata, mode: "test" }
+            : null;
+
+        const title =
+          detailsSource && detailsSource.name
+            ? detailsSource.name
+            : mode === "test"
+              ? "S7-1200 Simulation"
+              : connection && connection.host
+                ? connection.host
+                : "Keine SPS verbunden";
+        plcCardTitle.textContent = title;
+
+        const subtitle =
+          message ||
+          (connected
+            ? "Verbindung aktiv."
+            : activeTestMode
+              ? "Simulation bereit. Führe eine Abfrage aus, um Werte zu sehen."
+              : "Keine aktive Verbindung.");
+        plcCardSubtitle.textContent = subtitle;
+
+        clearContainer(plcDetailsElement);
+
+        function appendDetail(label, value, { fallback = "—" } = {}) {
+          const displayValue = value != null && value !== "" ? value : fallback;
+          const detail = document.createElement("div");
+          detail.className = "plc-detail";
+          const labelElement = document.createElement("span");
+          labelElement.className = "label";
+          labelElement.textContent = label;
+          const valueElement = document.createElement("span");
+          valueElement.className = "value";
+          valueElement.textContent = displayValue;
+          detail.appendChild(labelElement);
+          detail.appendChild(valueElement);
+          plcDetailsElement.appendChild(detail);
+        }
+
+        if (!detailsSource) {
+          const placeholder = document.createElement("p");
+          placeholder.className = "empty-hint";
+          placeholder.textContent = "Noch keine SPS-Daten vorhanden.";
+          plcDetailsElement.appendChild(placeholder);
+          return;
+        }
+
+        appendDetail("Modus", mode === "test" ? "Test" : "Live");
+        appendDetail("Host", detailsSource.host);
+        appendDetail(
+          "Port",
+          typeof detailsSource.port !== "undefined" ? detailsSource.port : null,
+        );
+        appendDetail(
+          "Rack",
+          typeof detailsSource.rack !== "undefined" ? detailsSource.rack : null,
+        );
+        appendDetail(
+          "Slot",
+          typeof detailsSource.slot !== "undefined" ? detailsSource.slot : null,
+        );
+
+        if (detailsSource.model) {
+          appendDetail("Modell", detailsSource.model);
+        }
+        if (detailsSource.firmware) {
+          appendDetail("Firmware", detailsSource.firmware);
+        }
+        if (detailsSource.serial) {
+          appendDetail("Seriennummer", detailsSource.serial);
+        }
+        if (detailsSource.lastScan) {
+          appendDetail("Letzter Scan", formatTimestamp(detailsSource.lastScan));
+        }
+        if (activeTestMode && state.testMode.lastActivated) {
+          appendDetail(
+            "Simulation aktiviert",
+            formatTimestamp(state.testMode.lastActivated),
+          );
+        }
+      }
+
+      async function fetchTestModeState() {
+        const response = await fetch("/api/plc/test-mode");
+        if (!response.ok) {
+          throw new Error("Testmodus-Status konnte nicht geladen werden.");
+        }
+        return response.json();
+      }
+
+      async function updateTestModeState() {
+        try {
+          const data = await fetchTestModeState();
+          applyTestModeState(data);
+          if (!state.plcConnection) {
+            renderPlcCard(null, {
+              connected: false,
+              message: plcStatusElement.textContent,
+            });
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      async function setTestMode(enabled) {
+        const response = await fetch("/api/plc/test-mode", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(
+            error.message || "Testmodus konnte nicht geändert werden.",
+          );
+        }
+        return response.json();
+      }
+
+      function detectValueType(value) {
+        if (value === null || typeof value === "undefined") {
+          return "string";
+        }
+        if (Array.isArray(value)) {
+          return "json";
+        }
+        if (value && typeof value === "object") {
+          return "object";
+        }
+        if (typeof value === "boolean") {
+          return "boolean";
+        }
+        if (typeof value === "number") {
+          return "number";
+        }
+        return "string";
+      }
+
+      function generateUniqueKey(base, target, skip = new Set()) {
+        let index = 1;
+        let candidate = base;
+        const taken = new Set(Object.keys(target || {}));
+        skip.forEach((entry) => taken.add(entry));
+        while (taken.has(candidate)) {
+          candidate = `${base}_${index}`;
+          index += 1;
+        }
+        return candidate;
+      }
+
+      function clearContainer(container) {
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+      }
+
+      function renderObjectEditor(
+        object,
+        container,
+        { skipKeys = new Set(), depth = 0 } = {},
+      ) {
+        clearContainer(container);
+        const entries = Object.entries(object || {}).filter(
+          ([key]) => !skipKeys.has(key),
+        );
+
+        if (!entries.length) {
+          return;
+        }
+
+        entries.forEach(([key, value]) => {
+          let currentKey = key;
+          const row = document.createElement("div");
+          row.className = "kv-row";
+
+          const keyInput = document.createElement("input");
+          keyInput.type = "text";
+          keyInput.value = currentKey;
+          keyInput.addEventListener("blur", () => {
+            const trimmed = keyInput.value.trim();
+            if (!trimmed || trimmed === currentKey) {
+              keyInput.value = currentKey;
+              return;
+            }
+            if (
+              skipKeys.has(trimmed) ||
+              Object.prototype.hasOwnProperty.call(object, trimmed)
+            ) {
+              keyInput.value = currentKey;
+              return;
+            }
+            object[trimmed] = object[currentKey];
+            delete object[currentKey];
+            currentKey = trimmed;
+            renderObjectEditor(object, container, { skipKeys, depth });
+          });
+          row.appendChild(keyInput);
+
+          const typeSelect = document.createElement("select");
+          ["string", "number", "boolean", "object"].forEach((option) => {
+            const opt = document.createElement("option");
+            opt.value = option;
+            opt.textContent =
+              option === "string"
+                ? "Text"
+                : option === "number"
+                  ? "Zahl"
+                  : option === "boolean"
+                    ? "Ja/Nein"
+                    : "Objekt";
+            typeSelect.appendChild(opt);
+          });
+          const initialType = detectValueType(value);
+          typeSelect.value = initialType === "json" ? "string" : initialType;
+          row.appendChild(typeSelect);
+
+          const valueContainer = document.createElement("div");
+          valueContainer.className = "attribute-value";
+
+          function renderValueEditor(currentType) {
+            clearContainer(valueContainer);
+            if (currentType === "number") {
+              const input = document.createElement("input");
+              input.type = "number";
+              input.value =
+                typeof object[currentKey] === "number"
+                  ? object[currentKey]
+                  : "";
+              input.addEventListener("input", () => {
+                const raw = input.value.trim();
+                if (raw === "") {
+                  delete object[currentKey];
+                } else {
+                  const parsed = Number(raw);
+                  if (!Number.isNaN(parsed)) {
+                    object[currentKey] = parsed;
+                  }
+                }
+              });
+              valueContainer.appendChild(input);
+              return;
+            }
+            if (currentType === "boolean") {
+              const select = document.createElement("select");
+              const options = [
+                { value: "", label: "Nicht gesetzt" },
+                { value: "true", label: "Ja" },
+                { value: "false", label: "Nein" },
+              ];
+              options.forEach(({ value: val, label }) => {
+                const opt = document.createElement("option");
+                opt.value = val;
+                opt.textContent = label;
+                select.appendChild(opt);
+              });
+              if (typeof object[currentKey] === "boolean") {
+                select.value = object[currentKey] ? "true" : "false";
+              }
+              select.addEventListener("change", () => {
+                if (select.value === "") {
+                  delete object[currentKey];
+                } else {
+                  object[currentKey] = select.value === "true";
+                }
+              });
+              valueContainer.appendChild(select);
+              return;
+            }
+            if (currentType === "object") {
+              if (
+                !object[currentKey] ||
+                typeof object[currentKey] !== "object" ||
+                Array.isArray(object[currentKey])
+              ) {
+                object[currentKey] = {};
+              }
+              const nested = document.createElement("div");
+              nested.className = "kv-nested";
+              renderObjectEditor(object[currentKey], nested, {
+                skipKeys: new Set(),
+                depth: depth + 1,
+              });
+              valueContainer.appendChild(nested);
+              return;
+            }
+            if (currentType === "string") {
+              if (shouldUseAddressEditor(currentKey, object[currentKey])) {
+                const editor = createAddressEditor(
+                  object[currentKey] != null ? String(object[currentKey]) : "",
+                  {
+                    onChange: (next) => {
+                      object[currentKey] = next;
+                    },
+                    placeholder: "SPS-Adresse (z. B. DB1,X0.0)",
+                  },
+                );
+                valueContainer.appendChild(editor);
+              } else {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.value =
+                  object[currentKey] != null ? String(object[currentKey]) : "";
+                input.addEventListener("input", () => {
+                  object[currentKey] = input.value;
+                  refreshConfigAddresses();
+                });
+                valueContainer.appendChild(input);
+              }
+              return;
+            }
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value =
+              object[currentKey] != null ? String(object[currentKey]) : "";
+            input.addEventListener("input", () => {
+              object[currentKey] = input.value;
+            });
+            valueContainer.appendChild(input);
+          }
+
+          renderValueEditor(typeSelect.value);
+
+          typeSelect.addEventListener("change", () => {
+            const newType = typeSelect.value;
+            if (newType === "number") {
+              object[currentKey] = 0;
+            } else if (newType === "boolean") {
+              object[currentKey] = false;
+            } else if (newType === "object") {
+              object[currentKey] = {};
+            } else {
+              object[currentKey] = "";
+            }
+            renderValueEditor(newType);
+          });
+
+          row.appendChild(valueContainer);
+
+          const actionWrapper = document.createElement("div");
+          actionWrapper.className = "actions";
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "remove";
+          removeButton.textContent = "Entfernen";
+          removeButton.addEventListener("click", () => {
+            delete object[currentKey];
+            renderObjectEditor(object, container, { skipKeys, depth });
+          });
+          actionWrapper.appendChild(removeButton);
+          row.appendChild(actionWrapper);
+
+          container.appendChild(row);
+        });
+      }
+
+      function applyPlcState() {
+        const plc = state.config.plc || {};
+        plcInputs.host.value = plc.host || "";
+        plcInputs.port.value = typeof plc.port === "number" ? plc.port : "";
+        plcInputs.rack.value = typeof plc.rack === "number" ? plc.rack : "";
+        plcInputs.slot.value = typeof plc.slot === "number" ? plc.slot : "";
+        plcInputs.timeout.value =
+          typeof plc.timeout === "number" ? plc.timeout : "";
+        plcInputs.localTSAP.value = plc.localTSAP || "";
+        plcInputs.remoteTSAP.value = plc.remoteTSAP || "";
+        if (typeof plc.debug === "boolean") {
+          plcDebugSelect.value = plc.debug ? "true" : "false";
+        } else {
+          plcDebugSelect.value = "";
+        }
+        if (typeof plc.doNotOptimize === "boolean") {
+          plcOptimizeSelect.value = plc.doNotOptimize ? "true" : "false";
+        } else {
+          plcOptimizeSelect.value = "";
+        }
+
+        const extraKeys = Object.keys(plc).filter(
+          (key) => !PLC_KNOWN_KEYS.has(key),
+        );
+        plcExtrasHint.style.display = extraKeys.length ? "none" : "block";
+        renderObjectEditor(plc, plcExtrasContainer, {
+          skipKeys: PLC_KNOWN_KEYS,
+        });
+      }
+
+      function applyMqttState() {
+        const mqtt = state.config.mqtt || {};
+        mqttInputs.host.value = mqtt.host || "";
+        mqttInputs.user.value = mqtt.user || "";
+        mqttInputs.password.value = mqtt.password || "";
+        mqttInputs.clientId.value = mqtt.clientId || "";
+        mqttInputs.keepalive.value =
+          typeof mqtt.keepalive === "number" ? mqtt.keepalive : "";
+        if (typeof mqtt.rejectUnauthorized === "boolean") {
+          mqttRejectSelect.value = mqtt.rejectUnauthorized ? "true" : "false";
+        } else {
+          mqttRejectSelect.value = "";
+        }
+
+        const skip = new Set(MQTT_KNOWN_KEYS);
+        const extraKeys = Object.keys(mqtt).filter((key) => !skip.has(key));
+        mqttExtrasHint.style.display = extraKeys.length ? "none" : "block";
+        renderObjectEditor(mqtt, mqttExtrasContainer, { skipKeys: skip });
+      }
+
+      function applyRootExtras() {
+        const extras = state.config.extras || {};
+        const entries = Object.keys(extras);
+        rootExtrasHint.style.display = entries.length ? "none" : "block";
+        renderObjectEditor(extras, rootExtrasContainer, {
+          skipKeys: new Set(),
+        });
+      }
+
+      function renderEntityAttribute(entityIndex, attributeKey, container) {
+        const entities = ensureEntitiesSection();
+        const entity = entities[entityIndex];
+        const value = entity[attributeKey];
+        const type = detectValueType(value);
+
+        const row = document.createElement("div");
+        row.className = "attribute-row";
+
+        const controls = document.createElement("div");
+        controls.className = "attribute-controls";
+
+        const keyInput = document.createElement("input");
+        keyInput.type = "text";
+        keyInput.value = attributeKey;
+        keyInput.addEventListener("blur", () => {
+          const trimmed = keyInput.value.trim();
+          if (!trimmed || trimmed === attributeKey) {
+            keyInput.value = attributeKey;
+            return;
+          }
+          if (
+            ENTITY_META_KEYS.has(trimmed) ||
+            Object.prototype.hasOwnProperty.call(entity, trimmed)
+          ) {
+            keyInput.value = attributeKey;
+            return;
+          }
+          entity[trimmed] = entity[attributeKey];
+          delete entity[attributeKey];
+          renderEntities();
+        });
+        controls.appendChild(keyInput);
+
+        const typeSelect = document.createElement("select");
+        ["string", "number", "boolean", "object"].forEach((option) => {
+          const opt = document.createElement("option");
+          opt.value = option;
+          opt.textContent =
+            option === "string"
+              ? "Text"
+              : option === "number"
+                ? "Zahl"
+                : option === "boolean"
+                  ? "Ja/Nein"
+                  : "Objekt";
+          typeSelect.appendChild(opt);
+        });
+        typeSelect.value = type === "json" ? "string" : type;
+        typeSelect.addEventListener("change", () => {
+          const newType = typeSelect.value;
+          if (newType === "number") {
+            entity[attributeKey] = 0;
+          } else if (newType === "boolean") {
+            entity[attributeKey] = false;
+          } else if (newType === "object") {
+            entity[attributeKey] = {};
+          } else {
+            entity[attributeKey] = "";
+          }
+          renderEntities();
+        });
+        controls.appendChild(typeSelect);
+
+        row.appendChild(controls);
+
+        const valueWrapper = document.createElement("div");
+        valueWrapper.className = "attribute-value";
+
+        function renderValueEditor(currentType) {
+          clearContainer(valueWrapper);
+          if (currentType === "number") {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.value =
+              typeof entity[attributeKey] === "number"
+                ? entity[attributeKey]
+                : "";
+            input.addEventListener("input", () => {
+              const raw = input.value.trim();
+              if (raw === "") {
+                delete entity[attributeKey];
+              } else {
+                const parsed = Number(raw);
+                if (!Number.isNaN(parsed)) {
+                  entity[attributeKey] = parsed;
+                }
+              }
+            });
+            valueWrapper.appendChild(input);
+            return;
+          }
+          if (currentType === "boolean") {
+            const select = document.createElement("select");
+            const options = [
+              { value: "", label: "Nicht gesetzt" },
+              { value: "true", label: "Ja" },
+              { value: "false", label: "Nein" },
+            ];
+            options.forEach(({ value: val, label }) => {
+              const opt = document.createElement("option");
+              opt.value = val;
+              opt.textContent = label;
+              select.appendChild(opt);
+            });
+            if (typeof entity[attributeKey] === "boolean") {
+              select.value = entity[attributeKey] ? "true" : "false";
+            }
+            select.addEventListener("change", () => {
+              if (select.value === "") {
+                delete entity[attributeKey];
+              } else {
+                entity[attributeKey] = select.value === "true";
+              }
+            });
+            valueWrapper.appendChild(select);
+            return;
+          }
+          if (currentType === "object") {
+            if (
+              !entity[attributeKey] ||
+              typeof entity[attributeKey] !== "object" ||
+              Array.isArray(entity[attributeKey])
+            ) {
+              entity[attributeKey] = {};
+            }
+            const nested = document.createElement("div");
+            nested.className = "kv-nested";
+            renderObjectEditor(entity[attributeKey], nested, {
+              skipKeys: new Set(),
+              depth: 1,
+            });
+            valueWrapper.appendChild(nested);
+            return;
+          }
+          if (currentType === "string") {
+            if (shouldUseAddressEditor(attributeKey, entity[attributeKey])) {
+              const editor = createAddressEditor(
+                entity[attributeKey] != null
+                  ? String(entity[attributeKey])
+                  : "",
+                {
+                  onChange: (next) => {
+                    entity[attributeKey] = next;
+                  },
+                  placeholder: "SPS-Adresse (z. B. DB1,X0.0)",
+                },
+              );
+              valueWrapper.appendChild(editor);
+            } else {
+              const input = document.createElement("input");
+              input.type = "text";
+              input.value =
+                entity[attributeKey] != null
+                  ? String(entity[attributeKey])
+                  : "";
+              input.addEventListener("input", () => {
+                entity[attributeKey] = input.value;
+                refreshConfigAddresses();
+              });
+              valueWrapper.appendChild(input);
+            }
+            return;
+          }
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value =
+            entity[attributeKey] != null ? String(entity[attributeKey]) : "";
+          input.addEventListener("input", () => {
+            entity[attributeKey] = input.value;
+          });
+          valueWrapper.appendChild(input);
+        }
+
+        renderValueEditor(typeSelect.value);
+
+        const actions = document.createElement("div");
+        actions.className = "attribute-actions";
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "remove";
+        removeButton.textContent = "Attribut entfernen";
+        removeButton.addEventListener("click", () => {
+          delete entity[attributeKey];
+          renderEntities();
+        });
+        actions.appendChild(removeButton);
+
+        row.appendChild(valueWrapper);
+        row.appendChild(actions);
+
+        container.appendChild(row);
+      }
+
+      function renderEntities() {
+        const entities = ensureEntitiesSection();
+        clearContainer(entitiesList);
+        entitiesEmptyHint.style.display = entities.length ? "none" : "block";
+
+        entities.forEach((entity, index) => {
+          const card = document.createElement("div");
+          card.className = "device-card";
+
+          const header = document.createElement("div");
+          header.className = "device-header";
+
+          const title = document.createElement("h3");
+          title.textContent = entity.name || `Entität ${index + 1}`;
+          header.appendChild(title);
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "remove";
+          removeButton.textContent = "Entität entfernen";
+          removeButton.addEventListener("click", () => {
+            entities.splice(index, 1);
+            renderEntities();
+          });
+          header.appendChild(removeButton);
+
+          card.appendChild(header);
+
+          if (entity.type) {
+            applyEntityTemplate(entity, entity.type);
+          }
+
+          const grid = document.createElement("div");
+          grid.className = "form-grid";
+
+          const metaFields = [
+            { key: "name", label: "Name", placeholder: "Wohnzimmer Licht" },
+            {
+              key: "type",
+              label: "Typ",
+              placeholder: "light",
+              list: "entity-types",
+            },
+            {
+              key: "friendly_name",
+              label: "Friendly Name",
+              placeholder: "Anzeige-Name",
+            },
+            {
+              key: "topic",
+              label: "MQTT Topic",
+              placeholder: "home/s7/entity",
+            },
+            {
+              key: "device_class",
+              label: "Device Class",
+              placeholder: "temperature",
+            },
+            { key: "unit_of_measurement", label: "Einheit", placeholder: "°C" },
+            {
+              key: "state_class",
+              label: "State Class",
+              placeholder: "measurement",
+            },
+          ];
+
+          metaFields.forEach(({ key, label, placeholder, list }) => {
+            const field = document.createElement("div");
+            field.className = "field";
+            const labelElement = document.createElement("label");
+            labelElement.textContent = label;
+            field.appendChild(labelElement);
+            const input = document.createElement("input");
+            input.type = "text";
+            input.placeholder = placeholder || "";
+            if (list) {
+              input.setAttribute("list", list);
+            }
+            input.value = entity[key] || "";
+            input.addEventListener("input", () => {
+              entity[key] = input.value;
+              if (key === "name") {
+                title.textContent = input.value || `Entität ${index + 1}`;
+              }
+              if (key === "type") {
+                applyEntityTemplate(entity, input.value, {
+                  replaceMeta: false,
+                });
+                renderEntities();
+              }
+            });
+            field.appendChild(input);
+            grid.appendChild(field);
+          });
+
+          card.appendChild(grid);
+
+          const attributeKeys = Object.keys(entity).filter(
+            (key) => !ENTITY_META_KEYS.has(key),
+          );
+          const attributeList = document.createElement("div");
+          attributeList.className = "attribute-list";
+
+          if (!attributeKeys.length) {
+            const hint = document.createElement("p");
+            hint.className = "empty-hint";
+            hint.textContent = "Noch keine Attribute hinterlegt.";
+            attributeList.appendChild(hint);
+          } else {
+            attributeKeys.forEach((attributeKey) => {
+              renderEntityAttribute(index, attributeKey, attributeList);
+            });
+          }
+
+          const addAttributeButton = document.createElement("button");
+          addAttributeButton.type = "button";
+          addAttributeButton.className = "secondary";
+          addAttributeButton.textContent = "Attribut hinzufügen";
+          addAttributeButton.addEventListener("click", () => {
+            const newKey = generateUniqueKey("state", entity, ENTITY_META_KEYS);
+            entity[newKey] = "";
+            renderEntities();
+          });
+
+          card.appendChild(attributeList);
+          card.appendChild(addAttributeButton);
+
+          entitiesList.appendChild(card);
+        });
+
+        refreshConfigAddresses();
+      }
+
+      function attachPlcListeners() {
+        plcInputs.host.addEventListener("input", () => {
+          const plc = ensurePlcSection();
+          plc.host = plcInputs.host.value;
+        });
+        plcInputs.port.addEventListener("input", () => {
+          const raw = plcInputs.port.value.trim();
+          const plc = ensurePlcSection();
+          if (raw === "") {
+            delete plc.port;
+          } else {
+            const parsed = Number(raw);
+            if (!Number.isNaN(parsed)) {
+              plc.port = parsed;
+            }
+          }
+        });
+        plcInputs.rack.addEventListener("input", () => {
+          const raw = plcInputs.rack.value.trim();
+          const plc = ensurePlcSection();
+          if (raw === "") {
+            delete plc.rack;
+          } else {
+            const parsed = Number(raw);
+            if (!Number.isNaN(parsed)) {
+              plc.rack = parsed;
+            }
+          }
+        });
+        plcInputs.slot.addEventListener("input", () => {
+          const raw = plcInputs.slot.value.trim();
+          const plc = ensurePlcSection();
+          if (raw === "") {
+            delete plc.slot;
+          } else {
+            const parsed = Number(raw);
+            if (!Number.isNaN(parsed)) {
+              plc.slot = parsed;
+            }
+          }
+        });
+        plcInputs.timeout.addEventListener("input", () => {
+          const raw = plcInputs.timeout.value.trim();
+          const plc = ensurePlcSection();
+          if (raw === "") {
+            delete plc.timeout;
+          } else {
+            const parsed = Number(raw);
+            if (!Number.isNaN(parsed)) {
+              plc.timeout = parsed;
+            }
+          }
+        });
+        plcInputs.localTSAP.addEventListener("input", () => {
+          const plc = ensurePlcSection();
+          if (plcInputs.localTSAP.value) {
+            plc.localTSAP = plcInputs.localTSAP.value;
+          } else {
+            delete plc.localTSAP;
+          }
+        });
+        plcInputs.remoteTSAP.addEventListener("input", () => {
+          const plc = ensurePlcSection();
+          if (plcInputs.remoteTSAP.value) {
+            plc.remoteTSAP = plcInputs.remoteTSAP.value;
+          } else {
+            delete plc.remoteTSAP;
+          }
+        });
+        plcDebugSelect.addEventListener("change", () => {
+          const plc = ensurePlcSection();
+          if (plcDebugSelect.value === "") {
+            delete plc.debug;
+          } else {
+            plc.debug = plcDebugSelect.value === "true";
+          }
+        });
+        plcOptimizeSelect.addEventListener("change", () => {
+          const plc = ensurePlcSection();
+          if (plcOptimizeSelect.value === "") {
+            delete plc.doNotOptimize;
+          } else {
+            plc.doNotOptimize = plcOptimizeSelect.value === "true";
+          }
+        });
+      }
+
+      function attachMqttListeners() {
+        mqttInputs.host.addEventListener("input", () => {
+          const mqtt = ensureMqttSection();
+          mqtt.host = mqttInputs.host.value;
+        });
+        mqttInputs.user.addEventListener("input", () => {
+          const mqtt = ensureMqttSection();
+          if (mqttInputs.user.value) {
+            mqtt.user = mqttInputs.user.value;
+          } else {
+            delete mqtt.user;
+          }
+        });
+        mqttInputs.password.addEventListener("input", () => {
+          const mqtt = ensureMqttSection();
+          if (mqttInputs.password.value) {
+            mqtt.password = mqttInputs.password.value;
+          } else {
+            delete mqtt.password;
+          }
+        });
+        mqttInputs.clientId.addEventListener("input", () => {
+          const mqtt = ensureMqttSection();
+          if (mqttInputs.clientId.value) {
+            mqtt.clientId = mqttInputs.clientId.value;
+          } else {
+            delete mqtt.clientId;
+          }
+        });
+        mqttInputs.keepalive.addEventListener("input", () => {
+          const raw = mqttInputs.keepalive.value.trim();
+          const mqtt = ensureMqttSection();
+          if (raw === "") {
+            delete mqtt.keepalive;
+          } else {
+            const parsed = Number(raw);
+            if (!Number.isNaN(parsed)) {
+              mqtt.keepalive = parsed;
+            }
+          }
+        });
+        mqttRejectSelect.addEventListener("change", () => {
+          const mqtt = ensureMqttSection();
+          if (mqttRejectSelect.value === "") {
+            delete mqtt.rejectUnauthorized;
+          } else {
+            mqtt.rejectUnauthorized = mqttRejectSelect.value === "true";
+          }
+        });
+      }
+
+      function setupExtrasButtons() {
+        plcAddExtraButton.addEventListener("click", () => {
+          const plc = ensurePlcSection();
+          const key = generateUniqueKey("option", plc, PLC_KNOWN_KEYS);
+          plc[key] = "";
+          applyPlcState();
+        });
+        mqttAddExtraButton.addEventListener("click", () => {
+          const mqtt = ensureMqttSection();
+          const key = generateUniqueKey("option", mqtt, MQTT_KNOWN_KEYS);
+          mqtt[key] = "";
+          applyMqttState();
+        });
+        rootAddExtraButton.addEventListener("click", () => {
+          if (!state.config.extras || typeof state.config.extras !== "object") {
+            state.config.extras = {};
+          }
+          const key = generateUniqueKey("option", state.config.extras);
+          state.config.extras[key] = "";
+          applyRootExtras();
+        });
+      }
+
+      async function fetchOptions() {
+        const response = await fetch("/api/options");
+        if (!response.ok) {
+          throw new Error("Optionen konnten nicht geladen werden.");
+        }
+        return response.json();
+      }
+
+      async function fetchConfig(file) {
+        const params = new URLSearchParams({ file });
+        const response = await fetch(`/api/config?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error("Konfiguration konnte nicht geladen werden.");
+        }
+        return response.json();
+      }
+
+      async function saveConfig(file, data) {
+        const response = await fetch("/api/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ file, data }),
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(
+            error.message || "Konfiguration konnte nicht gespeichert werden.",
+          );
+        }
+        return response.json();
+      }
+
+      async function fetchPlcScan(file) {
+        const params = new URLSearchParams({ file });
+        const response = await fetch(`/api/plc/scan?${params.toString()}`);
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(
+            error.message || "SPS-Daten konnten nicht gelesen werden.",
+          );
+        }
+        return response.json();
+      }
+
+      function clearPlcTable() {
+        plcTableBody.innerHTML = "";
+      }
+
+      function renderPlcRow(entry) {
+        const row = document.createElement("tr");
+        const roleLabel = entry.role === "set_plc" ? "Ausgang" : "Eingang";
+        const statusClass = `status-pill ${entry.status}`;
+        const statusTextMap = {
+          ok: "OK",
+          warning: "Warnung",
+          error: "Fehler",
+          skipped: "Übersprungen",
+        };
+
+        row.innerHTML = `
+          <td>${entry.entity || ""}</td>
+          <td>${entry.attribute || ""}</td>
+          <td>${roleLabel}</td>
+          <td>${entry.address || ""}</td>
+          <td><span class="${statusClass}">${statusTextMap[entry.status] || entry.status || ""}</span></td>
+          <td>${entry.value || ""}</td>
+        `;
+        return row;
+      }
+
+      function renderPlcSummary(counts) {
+        if (!counts) {
+          plcSummaryElement.textContent = "";
+          return;
+        }
+        plcSummaryElement.innerHTML = `
+          <span class="status-pill ok">OK: ${counts.ok}</span>
+          <span class="status-pill warning">Warnung: ${counts.warning}</span>
+          <span class="status-pill error">Fehler: ${counts.error}</span>
+          <span class="status-pill skipped">Übersprungen: ${counts.skipped}</span>
+        `;
+      }
+
+      async function loadPlcOverview(file, { silent = false } = {}) {
+        if (!file) {
+          plcStatusElement.textContent =
+            "Keine Konfigurationsdatei ausgewählt.";
+          state.plcConnection = null;
+          clearPlcTable();
+          renderPlcSummary(null);
+          renderPlcCard(null, {
+            connected: false,
+            message: plcStatusElement.textContent,
+          });
+          setDetectedAddresses([]);
+          return;
+        }
+
+        if (!silent) {
+          plcStatusElement.textContent = "SPS-Daten werden geladen...";
+        }
+        clearPlcTable();
+        renderPlcSummary(null);
+        renderPlcCard(state.plcConnection, {
+          connected: false,
+          message: plcStatusElement.textContent,
+        });
+
+        try {
+          const data = await fetchPlcScan(file);
+          plcStatusElement.textContent =
+            data.message || "Abfrage abgeschlossen.";
+          state.plcConnection = data.connection || null;
+          renderPlcCard(state.plcConnection, {
+            connected: Boolean(data.connected),
+            message: plcStatusElement.textContent,
+          });
+          renderPlcSummary(data.counts);
+          const detectedAddresses = Array.isArray(data.addresses)
+            ? data.addresses
+                .map((entry) =>
+                  entry && typeof entry.address === "string"
+                    ? entry.address
+                    : null,
+                )
+                .filter((value) => typeof value === "string")
+            : [];
+          setDetectedAddresses(detectedAddresses);
+          data.addresses.forEach((entry) => {
+            plcTableBody.appendChild(renderPlcRow(entry));
+          });
+        } catch (error) {
+          console.error(error);
+          plcStatusElement.textContent = error.message;
+          renderPlcCard(state.plcConnection, {
+            connected: false,
+            message: error.message,
+          });
+        }
+      }
+
+      async function loadFile(file) {
+        setStatus(`Lade ${file}...`);
+        saveButton.disabled = true;
+        try {
+          const data = await fetchConfig(file);
+          state.currentFile = data.file;
+          state.config = cloneConfig(data.data);
+          state.plcConnection = null;
+          configSelect.value = data.file;
+          applyPlcState();
+          applyMqttState();
+          applyRootExtras();
+          renderEntities();
+          setStatus(`${file} geladen.`, "ok");
+          await loadPlcOverview(file, { silent: true });
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, "error");
+        } finally {
+          saveButton.disabled = false;
+        }
+      }
+
+      async function init() {
+        setStatus("Lade Optionen...");
+        saveButton.disabled = true;
+        configSelect.innerHTML = "";
+
+        try {
+          const options = await fetchOptions();
+          state.options = options;
+          logLevelElement.textContent = `Log-Level: ${options.log_level}`;
+          fileCountElement.textContent = `Dateien: ${options.config_files.length}`;
+
+          options.config_files.forEach((file) => {
+            const option = document.createElement("option");
+            option.value = file;
+            option.textContent = file;
+            configSelect.appendChild(option);
+          });
+
+          if (options.config_files.length === 0) {
+            throw new Error("Keine Konfigurationsdateien gefunden.");
+          }
+
+          await loadFile(options.config_files[0]);
+          setStatus("Konfiguration erfolgreich geladen.", "ok");
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, "error");
+        } finally {
+          saveButton.disabled = false;
+        }
+      }
+
+      configSelect.addEventListener("change", (event) => {
+        const file = event.target.value;
+        if (file) {
+          loadFile(file);
+        }
+      });
+
+      saveButton.addEventListener("click", async () => {
+        if (!state.currentFile) {
+          setStatus("Keine Konfigurationsdatei ausgewählt.", "error");
+          return;
+        }
+        saveButton.disabled = true;
+        setStatus("Speichere...");
+        try {
+          await saveConfig(state.currentFile, state.config);
+          setStatus("Änderungen gespeichert.", "ok");
+          await loadPlcOverview(state.currentFile, { silent: true });
+        } catch (error) {
+          console.error(error);
+          setStatus(error.message, "error");
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+
+      plcTestToggleButton.addEventListener("click", async () => {
+        const targetState = !state.testMode.enabled;
+        const originalLabel = plcTestToggleButton.textContent;
+        plcTestToggleButton.disabled = true;
+        plcTestToggleButton.textContent = targetState
+          ? "Testmodus wird aktiviert..."
+          : "Testmodus wird deaktiviert...";
+        try {
+          const data = await setTestMode(targetState);
+          applyTestModeState(data);
+          plcStatusElement.textContent = data.message;
+          if (state.currentFile) {
+            await loadPlcOverview(state.currentFile, { silent: true });
+          } else {
+            renderPlcCard(state.plcConnection, {
+              connected: false,
+              message: data.message,
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          plcStatusElement.textContent = error.message;
+          renderPlcCard(state.plcConnection, {
+            connected: false,
+            message: error.message,
+          });
+        } finally {
+          plcTestToggleButton.disabled = false;
+          plcTestToggleButton.textContent = originalLabel;
+          applyTestModeState(state.testMode);
+        }
+      });
+
+      addEntityButton.addEventListener("click", () => {
+        const entities = ensureEntitiesSection();
+        const newEntity = {
+          name: `Entität ${entities.length + 1}`,
+          type: "sensor",
+        };
+        applyEntityTemplate(newEntity, newEntity.type, { replaceMeta: true });
+        entities.push(newEntity);
+        renderEntities();
+      });
+
+      plcRefreshButton.addEventListener("click", async () => {
+        if (!state.currentFile) {
+          plcStatusElement.textContent =
+            "Keine Konfigurationsdatei ausgewählt.";
+          return;
+        }
+        await loadPlcOverview(state.currentFile);
+      });
+
+      attachPlcListeners();
+      attachMqttListeners();
+      setupExtrasButtons();
+      renderPlcCard(null, {
+        connected: false,
+        message: plcStatusElement.textContent,
+      });
+      updateTestModeState();
+      init();
+    </script>
+  </body>
+</html>
