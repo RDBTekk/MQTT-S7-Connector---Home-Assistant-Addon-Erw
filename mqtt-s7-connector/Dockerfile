@@ -20,9 +20,6 @@ git=${GIT_VERSION} \
 # Copy root filesystem
 COPY rootfs /
 
-# Ship the standard configuration blueprint for first-run provisioning
-COPY standard-config.yaml /usr/share/mqtt-s7-connector/standard-config.yaml
-
 # Install configuration UI dependencies
 RUN npm install --production --prefix /usr/lib/mqtt-s7-config-ui
 
