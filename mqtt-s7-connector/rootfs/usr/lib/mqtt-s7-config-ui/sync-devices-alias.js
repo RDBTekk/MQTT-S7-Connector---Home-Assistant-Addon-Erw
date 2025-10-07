@@ -3,7 +3,7 @@ const fs = require("fs/promises");
 const path = require("path");
 const YAML = require("yaml");
 
-const DEVICE_STRIP_KEYS = new Set(["friendly_name"]);
+const DEVICE_STRIP_KEYS = new Set(["friendly_name", "topic"]);
 
 function deepClone(value) {
   return JSON.parse(JSON.stringify(value));

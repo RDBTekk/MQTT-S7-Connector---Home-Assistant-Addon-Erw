@@ -2,6 +2,7 @@
 
 - chore: remove PNG assets (icon, logo, documentation figures) to keep the repository binary-free for branch sync tooling.
 - docs: note the binary asset limitation in the README and DOCS so Home Assistant users know why default icons appear.
+- fix: strip unsupported `topic` keys from the legacy `devices` mirror and blueprint so schema validation passes on boot.
 
 ## 2.2.0
 
