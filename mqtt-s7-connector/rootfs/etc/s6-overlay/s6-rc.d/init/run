@@ -13,6 +13,8 @@ EXAMPLE_SOURCE_DIR="/usr/src/mqtt-s7-connector"
 
 bashio::log.info "Preparing MQTT S7 Connector configuration files..."
 
+mkdir -p "${CONFIG_DIR}"
+
 # Copy upstream example files when they are present in the cloned repository.
 if [ -f "${EXAMPLE_SOURCE_DIR}/config.example.yaml" ]; then
     cp -n "${EXAMPLE_SOURCE_DIR}/config.example.yaml" "${CONFIG_DIR}/config.example.yaml"
