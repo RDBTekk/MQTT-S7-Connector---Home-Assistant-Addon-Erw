@@ -7,10 +7,8 @@ description: "MQTT Siemens S7 connector to integrate Siemens PLC's with Home Ass
 url: https://github.com/dixi83/hassio-addons/mqtt-s7-connector
 init: false
 ingress: true
-ingress_port: 8099
 panel_icon: mdi:robot-industrial
 panel_title: S7 Connector
-webui: http://[HOST]:[PORT:8099]/
 ports:
   8099/tcp: 8099
 ports_description:
