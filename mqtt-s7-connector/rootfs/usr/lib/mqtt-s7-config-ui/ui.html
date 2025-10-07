@@ -39,6 +39,7 @@
         border-radius: 12px;
         padding: 1.5rem;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        margin-bottom: 1.5rem;
       }
 
       label {
@@ -112,6 +113,89 @@
         border-radius: 999px;
       }
 
+      .plc-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .plc-actions {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .plc-actions button {
+        width: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      thead {
+        background: rgba(55, 65, 81, 0.6);
+      }
+
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .status-pill.ok {
+        background: rgba(34, 197, 94, 0.15);
+        color: #34d399;
+      }
+
+      .status-pill.warning {
+        background: rgba(234, 179, 8, 0.15);
+        color: #fbbf24;
+      }
+
+      .status-pill.error {
+        background: rgba(248, 113, 113, 0.15);
+        color: #f87171;
+      }
+
+      .status-pill.skipped {
+        background: rgba(156, 163, 175, 0.15);
+        color: #d1d5db;
+      }
+
+      .plc-status-text {
+        margin: 0.5rem 0 0;
+        color: #d1d5db;
+      }
+
+      .plc-summary {
+        margin-top: 0.5rem;
+        color: #9ca3af;
+        font-size: 0.9rem;
+      }
+
+      .plc-summary span {
+        margin-right: 0.75rem;
+      }
+
       @media (max-width: 640px) {
         main {
           padding: 1.5rem 1rem 3rem;
@@ -141,6 +225,33 @@
         <button id="save-button">Speichern</button>
         <div id="status" class="status" role="status" aria-live="polite"></div>
       </section>
+      <section>
+        <div class="plc-header">
+          <div>
+            <h2 style="margin: 0 0 0.25rem">SPS Ein-/Ausgänge</h2>
+            <p id="plc-status" class="plc-status-text">Noch keine Abfrage durchgeführt.</p>
+            <div id="plc-summary" class="plc-summary"></div>
+          </div>
+          <div class="plc-actions">
+            <button id="plc-refresh" type="button">SPS erneut einlesen</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Gerät</th>
+                <th>Attribut</th>
+                <th>Rolle</th>
+                <th>Adresse</th>
+                <th>Status</th>
+                <th>Wert</th>
+              </tr>
+            </thead>
+            <tbody id="plc-table"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
     <script>
       const configSelect = document.getElementById('config-file');
@@ -149,6 +260,10 @@
       const statusElement = document.getElementById('status');
       const logLevelElement = document.getElementById('log-level');
       const fileCountElement = document.getElementById('file-count');
+      const plcStatusElement = document.getElementById('plc-status');
+      const plcSummaryElement = document.getElementById('plc-summary');
+      const plcTableBody = document.getElementById('plc-table');
+      const plcRefreshButton = document.getElementById('plc-refresh');
 
       async function fetchOptions() {
         const response = await fetch('/api/options');
@@ -180,6 +295,85 @@
         return response.json();
       }
 
+      async function fetchPlcScan(file) {
+        const params = new URLSearchParams({ file });
+        const response = await fetch(`/api/plc/scan?${params.toString()}`);
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.message || 'SPS-Daten konnten nicht gelesen werden.');
+        }
+        return response.json();
+      }
+
+      function clearPlcTable() {
+        plcTableBody.innerHTML = '';
+      }
+
+      function renderPlcRow(entry) {
+        const row = document.createElement('tr');
+        const roleLabel = entry.role === 'set_plc' ? 'Ausgang' : 'Eingang';
+        const statusClass = `status-pill ${entry.status}`;
+        const statusTextMap = {
+          ok: 'OK',
+          warning: 'Warnung',
+          error: 'Fehler',
+          skipped: 'Übersprungen'
+        };
+        const statusText = statusTextMap[entry.status] || entry.status;
+
+        row.innerHTML = `
+          <td>${entry.device}</td>
+          <td>${entry.attribute}</td>
+          <td>${roleLabel}</td>
+          <td>${entry.address}</td>
+          <td><span class="${statusClass}">${statusText}</span></td>
+          <td>${entry.value || ''}</td>
+        `;
+
+        return row;
+      }
+
+      function renderPlcSummary(counts) {
+        if (!counts) {
+          plcSummaryElement.textContent = '';
+          return;
+        }
+        plcSummaryElement.innerHTML = `
+          <span>Gesamt: ${counts.total}</span>
+          <span class="status-pill ok">OK: ${counts.ok}</span>
+          <span class="status-pill warning">Warnung: ${counts.warning}</span>
+          <span class="status-pill error">Fehler: ${counts.error}</span>
+          <span class="status-pill skipped">Übersprungen: ${counts.skipped}</span>
+        `;
+      }
+
+      async function loadPlcOverview(file, { silent = false } = {}) {
+        if (!file) {
+          plcStatusElement.textContent = 'Keine Konfigurationsdatei ausgewählt.';
+          clearPlcTable();
+          renderPlcSummary(null);
+          return;
+        }
+
+        if (!silent) {
+          plcStatusElement.textContent = 'SPS-Daten werden geladen...';
+        }
+        clearPlcTable();
+        renderPlcSummary(null);
+
+        try {
+          const data = await fetchPlcScan(file);
+          plcStatusElement.textContent = data.message || 'Abfrage abgeschlossen.';
+          renderPlcSummary(data.counts);
+          data.addresses.forEach((entry) => {
+            plcTableBody.appendChild(renderPlcRow(entry));
+          });
+        } catch (error) {
+          console.error(error);
+          plcStatusElement.textContent = error.message;
+        }
+      }
+
       function setStatus(message, type = '') {
         statusElement.textContent = message;
         statusElement.className = `status ${type}`.trim();
@@ -208,6 +402,7 @@
           }
 
           await loadFile(options.config_files[0]);
+          await loadPlcOverview(options.config_files[0]);
           setStatus('Konfiguration erfolgreich geladen.', 'ok');
         } catch (error) {
           console.error(error);
@@ -225,6 +420,7 @@
           contentArea.value = data.content;
           configSelect.value = data.file;
           setStatus(`${file} geladen.`, 'ok');
+          await loadPlcOverview(file, { silent: true });
         } catch (error) {
           console.error(error);
           setStatus(error.message, 'error');
@@ -246,12 +442,22 @@
         try {
           await saveConfig(file, content);
           setStatus('Änderungen gespeichert.', 'ok');
+          await loadPlcOverview(file, { silent: true });
         } catch (error) {
           console.error(error);
           setStatus(error.message, 'error');
         } finally {
           saveButton.disabled = false;
         }
+      });
+
+      plcRefreshButton.addEventListener('click', async () => {
+        const file = configSelect.value;
+        if (!file) {
+          plcStatusElement.textContent = 'Keine Konfigurationsdatei ausgewählt.';
+          return;
+        }
+        await loadPlcOverview(file);
       });
 
       init();

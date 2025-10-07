@@ -10,7 +10,7 @@ _MQTT Siemens S7 connector to integrate Siemens PLC's with Home Assistant_
 
 This project integrates [mqtt-s7-connector developed by Tim Roemisch](https://github.com/timroemisch/mqtt-s7-connector) as an add-on for Home Assistant.
 
-The [DOCS.md](./DOCS.md) file will contain everything you need to know to make the addon work with your Home Assistant installation and your Siemens PLC. It now also covers the built-in configuration web UI that is available directly through Home Assistant ingress.
+The [DOCS.md](./DOCS.md) file will contain everything you need to know to make the addon work with your Home Assistant installation and your Siemens PLC. It now also covers the built-in configuration web UI that is available directly through Home Assistant ingress, inklusive einer Live-Ansicht aller in der Konfiguration verwendeten SPS-Adressen.
 
 ## Credits
 

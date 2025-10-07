@@ -96,7 +96,9 @@ Ab Version 1.1.0 des Add-ons steht eine integrierte Weboberfläche zur Verfügun
 - Wähle im Drop-down die gewünschte Konfigurationsdatei und bearbeite den Inhalt direkt im Editor.
 - Mit **Speichern** werden die Änderungen sofort in der Datei unter `/config` gespeichert. Ein Neustart des Add-ons lädt die neue Konfiguration.
 
-Die Oberfläche zeigt auch den aktuell gesetzten Log-Level sowie die Anzahl der eingebundenen Konfigurationsdateien an. Für umfangreiche Änderungen empfiehlt es sich weiterhin, regelmäßig Backups der Dateien zu erstellen.
+Die Oberfläche zeigt auch den aktuell gesetzten Log-Level sowie die Anzahl der eingebundenen Konfigurationsdateien an. Zusätzlich liest die neue Ansicht „SPS Ein-/Ausgänge“ automatisch die in der Konfiguration hinterlegten PLC-Adressen aus, baut eine Verbindung zur SPS auf und zeigt die zuletzt gelesenen Werte an. Mit **SPS erneut einlesen** lässt sich die Abfrage jederzeit aktualisieren, um schnell zu prüfen, ob alle Adressen erreichbar sind.
+
+> Hinweis: Damit die Erkennung funktioniert, müssen im Abschnitt `plc:` gültige Verbindungsparameter hinterlegt sein. Schlägt der Verbindungsaufbau fehl, weist die Oberfläche darauf hin und markiert alle Adressen entsprechend.
 
 > Tipp: Zusätzlich steht der Editor auch außerhalb von Ingress über `http://<deine-home-assistant-adresse>:8099/` zur Verfügung, sofern der Port im Add-on freigegeben wurde.
 

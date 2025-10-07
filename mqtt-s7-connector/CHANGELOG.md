@@ -1,3 +1,9 @@
+## 1.2.0
+
+- feat: SPS-Ein- und Ausgänge direkt aus der Konfigurationsdatei erkennen und testen.
+- feat: Neue GUI-Ansicht mit Live-Anzeige der verbundenen SPS-Adressen und aktueller Werte.
+- chore: UI-Dienst nutzt jetzt Nodes7/YAML-Abhängigkeiten während des Builds.
+
 ## 1.1.0
 
 - feat: Added integrated Home Assistant ingress UI for managing configuration files.
