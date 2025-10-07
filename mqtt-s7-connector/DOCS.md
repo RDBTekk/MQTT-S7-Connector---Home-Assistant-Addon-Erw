@@ -395,9 +395,9 @@ Die folgenden Schritt-für-Schritt-Anleitungen beschreiben, wo die relevanten Ei
 
 ## Auto Discovery
 
-This tool will send for each entity an auto-discovery message over mqtt in the correct format defined by Home Assistant.
+This tool will send for each entity an auto-discovery message over MQTT in the correct format defined by Home Assistant.
 
-The default mqtt topic is `homeassistant`, if for some reason this needs to be changed than it can be changed in the config file. (See the [example](https://github.com/dixi83/mqtt-s7-connector/blob/master/config.example.yaml#L9))
+The default discovery prefix is `homeassistant`. The add-on manages the topic layout automatically; entity-level keys such as `topic` are ignored when saving the configuration to keep the runtime schema compliant. To change the discovery prefix, adjust it directly in the Home Assistant MQTT integration settings.
 
 ## License
 

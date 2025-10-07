@@ -4,8 +4,8 @@ plc:
   rack: 0
   slot: 2
   timeout: 5000
-  localTSAP: '0x4C00'
-  remoteTSAP: '0x1100'
+  localTSAP: "0x4C00"
+  remoteTSAP: "0x1100"
 mqtt:
   host: mqtt://homeassistant.local
   user: homeassistant
@@ -17,7 +17,6 @@ entities:
   - name: Wohnzimmer Licht
     friendly_name: Wohnzimmer Licht
     type: light
-    topic: home/s7/wz_light
     state: DB56,X150.0
     brightness:
       plc: DB56,BYTE151
@@ -25,7 +24,6 @@ entities:
   - name: Wohnzimmer Temperatur
     friendly_name: Wohnzimmer Temperatur
     type: sensor
-    topic: home/s7/wz_temperature
     device_class: temperature
     unit_of_measurement: "°C"
     state_class: measurement
@@ -33,7 +31,6 @@ entities:
   - name: Wohnzimmer Steckdose
     friendly_name: Wohnzimmer Steckdose
     type: switch
-    topic: home/s7/wz_socket
     state:
       plc: DB10,X0.0
       set_plc: DB10,X0.0
@@ -48,6 +45,7 @@ devices:
     type: sensor
     device_class: temperature
     unit_of_measurement: "°C"
+    state_class: measurement
     state: DB60,REAL0
   - name: Wohnzimmer Steckdose
     type: switch

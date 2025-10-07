@@ -1,3 +1,9 @@
+## 2.2.3
+
+- fix: sanitize legacy device aliases during saves so UI-only fields never break the JSON schema.
+- fix: drop `topic` defaults from the bundled blueprint and standard entities to keep generated configs valid.
+- chore: document-safe standard config now mirrors the sanitized defaults shipped at runtime.
+
 ## 2.2.2
 
 - chore: remove PNG assets (icon, logo, documentation figures) to keep the repository binary-free for branch sync tooling.

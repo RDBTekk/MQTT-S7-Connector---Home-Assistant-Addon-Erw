@@ -23,6 +23,11 @@ const TEST_MODE_PROFILE = Object.freeze({
   serial: "SIM1200-0001",
 });
 
+const DEVICE_ALIAS_IGNORED_KEYS = Object.freeze([
+  "friendly_name",
+  "topic",
+]);
+
 const testModeState = {
   enabled: false,
   cycle: 0,
@@ -78,7 +83,6 @@ const STANDARD_ENTITIES = Object.freeze([
     name: "Wohnzimmer Licht",
     type: "light",
     friendly_name: "Wohnzimmer Licht",
-    topic: "home/s7/wz_light",
     state: "DB56,X150.0",
     brightness: {
       plc: "DB56,BYTE151",
@@ -89,7 +93,6 @@ const STANDARD_ENTITIES = Object.freeze([
     name: "Wohnzimmer Temperatur",
     type: "sensor",
     friendly_name: "Wohnzimmer Temperatur",
-    topic: "home/s7/wz_temperature",
     unit_of_measurement: "°C",
     device_class: "temperature",
     state: "DB60,REAL0",
@@ -98,7 +101,6 @@ const STANDARD_ENTITIES = Object.freeze([
     name: "Wohnzimmer Steckdose",
     type: "switch",
     friendly_name: "Wohnzimmer Steckdose",
-    topic: "home/s7/wz_socket",
     state: {
       plc: "DB10,X0.0",
       set_plc: "DB10,X0.0",
@@ -125,11 +127,25 @@ const STANDARD_CONFIG = Object.freeze({
     rejectUnauthorized: true,
   },
   entities: STANDARD_ENTITIES,
-  devices: STANDARD_ENTITIES,
+  devices: STANDARD_ENTITIES.map(sanitizeLegacyDeviceEntry),
 });
 
 function cloneStandardConfig() {
   return JSON.parse(JSON.stringify(STANDARD_CONFIG));
+}
+
+function sanitizeLegacyDeviceEntry(entity) {
+  if (!entity || typeof entity !== "object") {
+    return entity;
+  }
+
+  const clone = { ...entity };
+  DEVICE_ALIAS_IGNORED_KEYS.forEach((key) => {
+    if (key in clone) {
+      delete clone[key];
+    }
+  });
+  return clone;
 }
 
 function getTestModeState() {
@@ -275,7 +291,7 @@ function prepareConfigForSave(data) {
       ...entity,
     }));
     output.entities = clonedEntities.map((entity) => ({ ...entity }));
-    output.devices = clonedEntities.map((entity) => ({ ...entity }));
+    output.devices = clonedEntities.map((entity) => sanitizeLegacyDeviceEntry(entity));
   }
 
   Object.entries(normalized.extras).forEach(([key, value]) => {

@@ -269,7 +269,7 @@ Da in diesem Repository keine Screenshots abgelegt werden können, beschreiben d
 
 ## MQTT Auto Discovery
 
-Für jede Entität publiziert das Add-on automatisch eine Auto-Discovery-Nachricht im Home-Assistant-Format (Standard-Topic `homeassistant`). Bei Bedarf lässt sich das Topic in der YAML-Konfiguration anpassen.【F:mqtt-s7-connector/DOCS.md†L372-L381】
+Für jede Entität publiziert das Add-on automatisch eine Auto-Discovery-Nachricht im Home-Assistant-Format (Standard-Prefix `homeassistant`). Die Topic-Struktur wird vollständig vom Add-on verwaltet; zusätzliche Felder wie `topic` innerhalb einzelner Entitäten sind nicht erforderlich und werden aus Kompatibilitätsgründen ignoriert. Möchtest du den Discovery-Prefix ändern, passe ihn direkt in der Home-Assistant-MQTT-Integration an.【F:mqtt-s7-connector/DOCS.md†L372-L381】
 
 ## Credits
 
