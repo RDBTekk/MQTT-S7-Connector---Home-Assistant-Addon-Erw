@@ -1,3 +1,9 @@
+## 2.2.4
+
+- fix: skip publishing container images when no registry target is configured so CI still validates builds without pushing.
+- fix: drop the hard-coded GHCR image reference so Home Assistant can build the add-on locally during installation.
+- docs: document the registry-free workflow in the README to steer users toward the local build flow.
+
 ## 2.2.3
 
 - fix: sanitize legacy device aliases during saves so UI-only fields never break the JSON schema.

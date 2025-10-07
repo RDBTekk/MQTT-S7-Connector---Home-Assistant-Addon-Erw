@@ -92,6 +92,10 @@ Der Connector empfängt Daten vom MQTT-Broker, schreibt sie auf konfigurierte SP
 
 Alternativ kannst du den Repository-Link über den obigen Home-Assistant-Badge automatisch einfügen.【F:mqtt-s7-connector/DOCS.md†L55-L73】
 
+> [!TIP]
+> Das Add-on enthält keinen vordefinierten Container-Registry-Eintrag. Home Assistant baut das Docker-Image daher beim ersten
+> Installationslauf automatisch lokal aus dem Repository. Plane je nach Hardware einige Minuten Build-Zeit ein.
+
 ## Add-on-Optionen
 
 ### Log-Level
