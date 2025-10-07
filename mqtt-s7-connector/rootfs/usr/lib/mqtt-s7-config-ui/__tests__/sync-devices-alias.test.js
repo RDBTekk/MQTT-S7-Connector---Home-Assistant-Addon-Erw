@@ -7,10 +7,11 @@ const YAML = require("yaml");
 const { syncDevicesAlias, synchronizeEntities } = require("../sync-devices-alias");
 
 test("synchronizeEntities creates missing aliases", () => {
-  const data = { entities: [{ name: "Light" }] };
+  const data = { entities: [{ name: "Light", friendly_name: "Wohnzimmer" }] };
   const result = synchronizeEntities(data);
   assert.equal(result.updated, true);
-  assert.deepEqual(result.data.devices, result.data.entities);
+  assert.equal(result.data.entities[0].friendly_name, "Wohnzimmer");
+  assert.ok(!("friendly_name" in result.data.devices[0]));
 });
 
 test("syncDevicesAlias fills missing devices in YAML configs", async () => {
@@ -20,7 +21,7 @@ test("syncDevicesAlias fills missing devices in YAML configs", async () => {
     filePath,
     YAML.stringify({
       plc: { host: "127.0.0.1" },
-      entities: [{ name: "Test", type: "switch" }],
+      entities: [{ name: "Test", type: "switch", friendly_name: "Test" }],
     }),
     "utf8",
   );
@@ -30,7 +31,8 @@ test("syncDevicesAlias fills missing devices in YAML configs", async () => {
 
   const parsed = YAML.parse(await fs.readFile(filePath, "utf8"));
   assert.ok(Array.isArray(parsed.devices));
-  assert.deepEqual(parsed.devices, parsed.entities);
+  assert.ok(!("friendly_name" in parsed.devices[0]));
+  assert.equal(parsed.entities[0].friendly_name, "Test");
 });
 
 test("syncDevicesAlias mirrors devices into entities for JSON configs", async () => {

@@ -3,6 +3,8 @@ const fs = require("fs/promises");
 const path = require("path");
 const YAML = require("yaml");
 
+const DEVICE_STRIP_KEYS = new Set(["friendly_name"]);
+
 function deepClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -63,14 +65,33 @@ function synchronizeEntities(data) {
     updated = true;
   }
 
-  const entitiesJson = JSON.stringify(workingEntities);
-  const devicesJson = JSON.stringify(workingDevices);
-  if (entitiesJson !== devicesJson) {
-    data.devices = deepClone(workingEntities);
+  const sanitizedDevices = sanitizeDeviceEntries(workingEntities);
+  if (JSON.stringify(data.devices) !== JSON.stringify(sanitizedDevices)) {
+    data.devices = sanitizedDevices;
     updated = true;
   }
 
   return { updated, data };
+}
+
+function sanitizeDeviceEntries(entries) {
+  if (!Array.isArray(entries)) {
+    return [];
+  }
+
+  return entries.map((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return entry;
+    }
+
+    const clone = deepClone(entry);
+    for (const key of DEVICE_STRIP_KEYS) {
+      if (key in clone) {
+        delete clone[key];
+      }
+    }
+    return clone;
+  });
 }
 
 async function syncDevicesAlias(filePath) {

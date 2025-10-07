@@ -39,7 +39,6 @@ entities:
       set_plc: DB10,X0.0
 devices:
   - name: Wohnzimmer Licht
-    friendly_name: Wohnzimmer Licht
     type: light
     topic: home/s7/wz_light
     state: DB56,X150.0
@@ -47,14 +46,12 @@ devices:
       plc: DB56,BYTE151
       set_plc: DB56,BYTE151
   - name: Wohnzimmer Temperatur
-    friendly_name: Wohnzimmer Temperatur
     type: sensor
     topic: home/s7/wz_temperature
     device_class: temperature
     unit_of_measurement: "°C"
     state: DB60,REAL0
   - name: Wohnzimmer Steckdose
-    friendly_name: Wohnzimmer Steckdose
     type: switch
     topic: home/s7/wz_socket
     state:
