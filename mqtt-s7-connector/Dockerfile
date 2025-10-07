@@ -20,6 +20,9 @@ git=${GIT_VERSION} \
 # Copy root filesystem
 COPY rootfs /
 
+# Install configuration UI dependencies
+RUN npm install --production --prefix /usr/lib/mqtt-s7-config-ui
+
 # Building the application
 WORKDIR /usr/src/mqtt-s7-connector
 RUN npm install --only=production
