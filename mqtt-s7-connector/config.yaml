@@ -5,6 +5,7 @@ version: 2.2.4
 slug: mqtt-s7-connector
 description: "MQTT Siemens S7 connector to integrate Siemens PLC's with Home Assistant"
 url: https://github.com/dixi83/hassio-addons/mqtt-s7-connector
+image: "ghcr.io/rdbtekk/mqtt-s7-connector-{arch}"
 init: false
 ingress: true
 panel_icon: mdi:robot-industrial
