@@ -20,17 +20,31 @@ ensure_config_file() {
   local target="${CONFIG_DIR}/${requested}"
 
   if [ -f "${target}" ]; then
+    synchronize_devices_alias "${target}"
     return 0
   fi
 
   if [ -f "${STANDARD_BLUEPRINT}" ]; then
     bashio::log.warning "Config file '${requested}' missing, installing standard blueprint copy."
     cp "${STANDARD_BLUEPRINT}" "${target}"
+    synchronize_devices_alias "${target}"
     return 0
   fi
 
   bashio::log.error "Config file '${requested}' missing and no blueprint available at ${STANDARD_BLUEPRINT}."
   return 1
+}
+
+synchronize_devices_alias() {
+  local file_path="$1"
+
+  if [ ! -f "${file_path}" ]; then
+    return
+  fi
+
+  if ! node /usr/lib/mqtt-s7-config-ui/sync-devices-alias.js "${file_path}" >/dev/null 2>&1; then
+    bashio::log.warning "Unable to synchronize entities/devices alias for ${file_path}."
+  fi
 }
 
 mkdir -p "${CONFIG_DIR}"
