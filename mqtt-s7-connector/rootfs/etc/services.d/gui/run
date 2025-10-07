@@ -1,0 +1,5 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+bashio::log.info "Starte MQTT S7 Konfigurationsoberfläche"
+exec node /usr/lib/mqtt-s7-config-ui/server.js
