@@ -1,3 +1,9 @@
+## 1.3.0
+
+- feat: Ersetzt den YAML-Editor durch geführte Formulare für PLC-, MQTT- und Geräte-Einstellungen.
+- feat: Ermöglicht das Bearbeiten zusätzlicher Optionen über dynamische Schlüssel/Wert-Listen.
+- fix: API liefert strukturierte Konfigurationen und verhindert ungültige YAML-Dateien beim Speichern.
+
 ## 1.2.0
 
 - feat: SPS-Ein- und Ausgänge direkt aus der Konfigurationsdatei erkennen und testen.

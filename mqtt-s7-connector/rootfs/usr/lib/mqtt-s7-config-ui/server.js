@@ -50,6 +50,54 @@ function allowedConfigFiles(options) {
   return ['config.yaml'];
 }
 
+function isPlainObject(value) {
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function normalizeRootConfig(config) {
+  const source = isPlainObject(config) ? config : {};
+  const normalized = {
+    plc: isPlainObject(source.plc) ? { ...source.plc } : {},
+    mqtt: isPlainObject(source.mqtt) ? { ...source.mqtt } : {},
+    devices: Array.isArray(source.devices)
+      ? source.devices.filter((device) => isPlainObject(device)).map((device) => ({ ...device }))
+      : [],
+    extras: {}
+  };
+
+  Object.entries(source).forEach(([key, value]) => {
+    if (!['plc', 'mqtt', 'devices'].includes(key)) {
+      normalized.extras[key] = value;
+    }
+  });
+
+  return normalized;
+}
+
+function prepareConfigForSave(data) {
+  const normalized = normalizeRootConfig(data);
+  const output = {};
+
+  if (Object.keys(normalized.plc).length > 0) {
+    output.plc = normalized.plc;
+  }
+  if (Object.keys(normalized.mqtt).length > 0) {
+    output.mqtt = normalized.mqtt;
+  }
+  if (normalized.devices.length > 0) {
+    output.devices = normalized.devices;
+  } else if (Array.isArray(data.devices)) {
+    // allow explicit empty list if requested
+    output.devices = [];
+  }
+
+  Object.entries(normalized.extras).forEach(([key, value]) => {
+    output[key] = value;
+  });
+
+  return output;
+}
+
 function parseNumeric(value, fallback) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value;
@@ -414,13 +462,24 @@ const server = http.createServer(async (req, res) => {
     fs.readFile(resolved, 'utf-8', (error, content) => {
       if (error) {
         if (error.code === 'ENOENT') {
-          sendJson(res, 200, { file, content: '' });
+          sendJson(res, 200, { file, data: normalizeRootConfig({}) });
           return;
         }
         sendJson(res, 500, { message: 'Unable to read configuration file.' });
         return;
       }
-      sendJson(res, 200, { file, content });
+
+      if (!content || !content.trim()) {
+        sendJson(res, 200, { file, data: normalizeRootConfig({}) });
+        return;
+      }
+
+      try {
+        const parsed = YAML.parse(content) || {};
+        sendJson(res, 200, { file, data: normalizeRootConfig(parsed) });
+      } catch (parseError) {
+        sendJson(res, 400, { message: 'Konfiguration enthält ungültiges YAML.' });
+      }
     });
     return;
   }
@@ -428,12 +487,14 @@ const server = http.createServer(async (req, res) => {
   if (method === 'POST' && url.pathname === '/api/config') {
     try {
       const payload = await readBody(req);
-      const { file, content } = payload;
+      const { file, data } = payload;
       const resolved = resolveFileName(file || allowedFiles[0], allowedFiles);
-      if (!resolved || typeof content !== 'string') {
+      if (!resolved || !isPlainObject(data)) {
         sendJson(res, 400, { message: 'Invalid payload.' });
         return;
       }
+
+      const content = YAML.stringify(prepareConfigForSave(data));
 
       fs.writeFile(resolved, content, 'utf-8', (error) => {
         if (error) {

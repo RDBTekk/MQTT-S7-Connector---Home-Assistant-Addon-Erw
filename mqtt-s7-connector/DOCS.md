@@ -93,10 +93,14 @@ Ab Version 1.1.0 des Add-ons steht eine integrierte Weboberfläche zur Verfügun
 
 - Öffne in Home Assistant den Reiter **Einstellungen → Add-ons → MQTT Siemens S7 Connector**.
 - Klicke auf **Öffnen** oder auf den neuen Eintrag in der linken Navigationsleiste. Die Oberfläche lädt automatisch im Home Assistant Frontend.
-- Wähle im Drop-down die gewünschte Konfigurationsdatei und bearbeite den Inhalt direkt im Editor.
-- Mit **Speichern** werden die Änderungen sofort in der Datei unter `/config` gespeichert. Ein Neustart des Add-ons lädt die neue Konfiguration.
+- Wähle im Drop-down die gewünschte Konfigurationsdatei.
+- Passe im Abschnitt **PLC-Verbindung** die SPS-Zugangsdaten an.
+- Hinterlege im Bereich **MQTT-Einstellungen** die Broker-Zugangsdaten.
+- Lege unter **Geräte** neue Einträge an oder bearbeite bestehende – inklusive aller Attribute.
+- Füge bei Bedarf zusätzliche Felder in den Bereichen **Weitere PLC-/MQTT-Optionen** oder **Weitere Einstellungen** hinzu.
+- Mit **Speichern** werden alle Änderungen als YAML in der Datei unter `/config` abgelegt. Ein Neustart des Add-ons lädt die neue Konfiguration.
 
-Die Oberfläche zeigt auch den aktuell gesetzten Log-Level sowie die Anzahl der eingebundenen Konfigurationsdateien an. Zusätzlich liest die neue Ansicht „SPS Ein-/Ausgänge“ automatisch die in der Konfiguration hinterlegten PLC-Adressen aus, baut eine Verbindung zur SPS auf und zeigt die zuletzt gelesenen Werte an. Mit **SPS erneut einlesen** lässt sich die Abfrage jederzeit aktualisieren, um schnell zu prüfen, ob alle Adressen erreichbar sind.
+Die Oberfläche zeigt auch den aktuell gesetzten Log-Level sowie die Anzahl der eingebundenen Konfigurationsdateien an. Die Eingabeformulare akzeptieren Text-, Zahlen- und Boolean-Werte; komplexe Attribute lassen sich über dynamische Schlüssel/Wert-Listen verwalten und bei Bedarf erweitern oder entfernen. Zusätzlich liest die Ansicht „SPS Ein-/Ausgänge“ automatisch die in der Konfiguration hinterlegten PLC-Adressen aus, baut eine Verbindung zur SPS auf und zeigt die zuletzt gelesenen Werte an. Mit **SPS erneut einlesen** lässt sich die Abfrage jederzeit aktualisieren, um schnell zu prüfen, ob alle Adressen erreichbar sind.
 
 > Hinweis: Damit die Erkennung funktioniert, müssen im Abschnitt `plc:` gültige Verbindungsparameter hinterlegt sein. Schlägt der Verbindungsaufbau fehl, weist die Oberfläche darauf hin und markiert alle Adressen entsprechend.
 
