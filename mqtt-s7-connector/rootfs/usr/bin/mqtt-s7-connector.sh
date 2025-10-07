@@ -4,10 +4,36 @@
 # Home Assistant Add-on: MQTT S7 Connector
 # Runs the mqtt-s7-connector
 # ==============================================================================
+
+set -euo pipefail
+
 declare command
 declare loglevel
 declare log_level
 declare first
+
+CONFIG_DIR="/config"
+STANDARD_BLUEPRINT="/usr/share/mqtt-s7-connector/standard-config.yaml"
+
+ensure_config_file() {
+  local requested="$1"
+  local target="${CONFIG_DIR}/${requested}"
+
+  if [ -f "${target}" ]; then
+    return 0
+  fi
+
+  if [ -f "${STANDARD_BLUEPRINT}" ]; then
+    bashio::log.warning "Config file '${requested}' missing, installing standard blueprint copy."
+    cp "${STANDARD_BLUEPRINT}" "${target}"
+    return 0
+  fi
+
+  bashio::log.error "Config file '${requested}' missing and no blueprint available at ${STANDARD_BLUEPRINT}."
+  return 1
+}
+
+mkdir -p "${CONFIG_DIR}"
 
 log_level=$(bashio::string.lower "$(bashio::config log_level invalid)")
 
@@ -51,6 +77,9 @@ if bashio::config.has_value config_files; then
   version=$(bashio::addon.version)
   first=true
   for config_file in $(bashio::config config_files); do
+    if ! ensure_config_file "${config_file}"; then
+      exit 1
+    fi
     if [ "$first" = true ]; then
       command="npm --prefix /usr/src/mqtt-s7-connector start -- --addonversion \"${version}\" --config \"/config/${config_file}\" --loglevel=${loglevel}"
     else
