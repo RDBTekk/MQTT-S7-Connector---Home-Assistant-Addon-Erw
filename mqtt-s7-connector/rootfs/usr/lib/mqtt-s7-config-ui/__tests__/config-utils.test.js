@@ -46,6 +46,17 @@ test('prepareConfigForSave outputs entities section', () => {
   assert.equal(saved.entities[0].name, 'Temperature');
 });
 
+test('prepareConfigForSave keeps devices alias in sync', () => {
+  const data = {
+    mqtt: { host: 'mqtt://demo.local' },
+    entities: [
+      { name: 'Demo Switch', type: 'switch', state: 'DB5,X0.0' }
+    ]
+  };
+  const saved = prepareConfigForSave(data);
+  assert.deepEqual(saved.devices, saved.entities);
+});
+
 test('sanitizeConnectionConfig accepts tsap_id shortcuts', () => {
   const config = {
     host: '192.168.0.50',

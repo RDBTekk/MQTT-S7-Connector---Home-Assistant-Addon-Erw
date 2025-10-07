@@ -73,6 +73,39 @@ function isPlainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value);
 }
 
+const STANDARD_ENTITIES = Object.freeze([
+  {
+    name: "Wohnzimmer Licht",
+    type: "light",
+    friendly_name: "Wohnzimmer Licht",
+    topic: "home/s7/wz_light",
+    state: "DB56,X150.0",
+    brightness: {
+      plc: "DB56,BYTE151",
+      set_plc: "DB56,BYTE151",
+    },
+  },
+  {
+    name: "Wohnzimmer Temperatur",
+    type: "sensor",
+    friendly_name: "Wohnzimmer Temperatur",
+    topic: "home/s7/wz_temperature",
+    unit_of_measurement: "°C",
+    device_class: "temperature",
+    state: "DB60,REAL0",
+  },
+  {
+    name: "Wohnzimmer Steckdose",
+    type: "switch",
+    friendly_name: "Wohnzimmer Steckdose",
+    topic: "home/s7/wz_socket",
+    state: {
+      plc: "DB10,X0.0",
+      set_plc: "DB10,X0.0",
+    },
+  },
+]);
+
 const STANDARD_CONFIG = Object.freeze({
   plc: {
     host: "192.168.0.1",
@@ -91,38 +124,8 @@ const STANDARD_CONFIG = Object.freeze({
     keepalive: 60,
     rejectUnauthorized: true,
   },
-  entities: [
-    {
-      name: "Wohnzimmer Licht",
-      type: "light",
-      friendly_name: "Wohnzimmer Licht",
-      topic: "home/s7/wz_light",
-      state: "DB56,X150.0",
-      brightness: {
-        plc: "DB56,BYTE151",
-        set_plc: "DB56,BYTE151",
-      },
-    },
-    {
-      name: "Wohnzimmer Temperatur",
-      type: "sensor",
-      friendly_name: "Wohnzimmer Temperatur",
-      topic: "home/s7/wz_temperature",
-      unit_of_measurement: "°C",
-      device_class: "temperature",
-      state: "DB60,REAL0",
-    },
-    {
-      name: "Wohnzimmer Steckdose",
-      type: "switch",
-      friendly_name: "Wohnzimmer Steckdose",
-      topic: "home/s7/wz_socket",
-      state: {
-        plc: "DB10,X0.0",
-        set_plc: "DB10,X0.0",
-      },
-    },
-  ],
+  entities: STANDARD_ENTITIES,
+  devices: STANDARD_ENTITIES,
 });
 
 function cloneStandardConfig() {
@@ -261,11 +264,18 @@ function prepareConfigForSave(data) {
   if (Object.keys(normalized.mqtt).length > 0) {
     output.mqtt = normalized.mqtt;
   }
-  if (normalized.entities.length > 0) {
-    output.entities = normalized.entities;
-  } else if (Array.isArray(data.entities)) {
-    // allow explicit empty list if requested
-    output.entities = [];
+
+  const shouldIncludeEntities =
+    normalized.entities.length > 0 ||
+    Array.isArray(data?.entities) ||
+    Array.isArray(data?.devices);
+
+  if (shouldIncludeEntities) {
+    const clonedEntities = normalized.entities.map((entity) => ({
+      ...entity,
+    }));
+    output.entities = clonedEntities.map((entity) => ({ ...entity }));
+    output.devices = clonedEntities.map((entity) => ({ ...entity }));
   }
 
   Object.entries(normalized.extras).forEach(([key, value]) => {

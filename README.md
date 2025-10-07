@@ -194,6 +194,8 @@ entities:
     state: DB56,X150.1
 ```
 
+> 💡 Hinweis: Der Editor speichert zusätzlich einen identischen `devices`-Abschnitt, damit ältere Connector-Versionen ohne UI-Anpassung weiterlaufen. Änderungen an Entitäten werden automatisch auf beide Listen gespiegelt.【F:mqtt-s7-connector/rootfs/usr/lib/mqtt-s7-config-ui/server.js†L244-L286】
+
 ### Adressformatierung
 
 Die Adressierung folgt der Syntax der NodeS7-Bibliothek. Beispiele:
